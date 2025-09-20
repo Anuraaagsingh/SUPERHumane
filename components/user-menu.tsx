@@ -15,6 +15,7 @@ import { Settings, LogOut, User, Moon, Sun } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
+import { useToast } from "@/hooks/use-toast"
 
 interface UserMenuProps {
   user: {
@@ -23,12 +24,14 @@ interface UserMenuProps {
     name?: string
     avatar_url?: string
   }
+  onSettingsClick?: () => void
 }
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user, onSettingsClick }: UserMenuProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
+  const { toast } = useToast()
 
   const supabase = createClient()
 
@@ -36,9 +39,18 @@ export function UserMenu({ user }: UserMenuProps) {
     setIsLoading(true)
     try {
       await supabase.auth.signOut()
-      router.push("/auth")
+      toast({
+        title: "Logged out successfully",
+        description: "You have been signed out of your account",
+      })
+      router.push("/login")
     } catch (error) {
       console.error("Sign out error:", error)
+      toast({
+        title: "Logout failed",
+        description: "There was an error signing you out",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -78,7 +90,7 @@ export function UserMenu({ user }: UserMenuProps) {
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push("/settings")}>
+        <DropdownMenuItem onClick={onSettingsClick}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>

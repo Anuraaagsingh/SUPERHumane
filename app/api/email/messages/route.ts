@@ -48,17 +48,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 })
     }
 
-    const syncService = new EmailSyncService()
+    // Get messages directly from database
     let messages
     let hasMore = false
 
     if (query) {
-      messages = await syncService.searchMessages(accountId, query, limit)
-      hasMore = messages.length === limit
+      const { data: searchResults, error: searchError } = await supabase
+        .from("email_metadata")
+        .select("*")
+        .eq("account_id", accountId)
+        .or(`subject.ilike.%${query}%,sender_name.ilike.%${query}%,sender_email.ilike.%${query}%`)
+        .order("received_at", { ascending: false })
+        .limit(limit)
+
+      if (searchError) throw searchError
+      messages = searchResults || []
     } else {
-      messages = await syncService.getAccountMessages(accountId, limit, offset)
-      hasMore = messages.length === limit
+      const { data: messageResults, error: messageError } = await supabase
+        .from("email_metadata")
+        .select("*")
+        .eq("account_id", accountId)
+        .order("received_at", { ascending: false })
+        .range(offset, offset + limit - 1)
+
+      if (messageError) throw messageError
+      messages = messageResults || []
     }
+
+    hasMore = messages.length === limit
 
     return NextResponse.json({ messages, hasMore })
   } catch (error: any) {

@@ -7,6 +7,7 @@ import { MessageView } from "./message-view"
 import { Composer } from "./composer"
 import { CommandPalette } from "./command-palette"
 import { UserMenu } from "@/components/user-menu"
+import { SettingsOverlay } from "@/components/settings-overlay"
 import { KeyboardShortcutsHelp } from "@/components/keyboard/keyboard-shortcuts-help"
 import { ShortcutIndicator } from "@/components/keyboard/shortcut-indicator"
 import { Button } from "@/components/ui/button"
@@ -30,6 +31,7 @@ export function InboxLayout({ user }: InboxLayoutProps) {
   const [composerData, setComposerData] = useState<any>(null)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentAccount, setCurrentAccount] = useState<any>(null)
   const { toast } = useToast()
@@ -241,7 +243,7 @@ export function InboxLayout({ user }: InboxLayoutProps) {
           <Button variant="ghost" size="sm" onClick={() => setIsShortcutsHelpOpen(true)}>
             <HelpCircle className="w-4 h-4" />
           </Button>
-          <UserMenu user={user} />
+          <UserMenu user={user} onSettingsClick={() => setIsSettingsOpen(true)} />
         </div>
       </header>
 
@@ -347,6 +349,13 @@ export function InboxLayout({ user }: InboxLayoutProps) {
 
       {/* Keyboard shortcuts help */}
       <KeyboardShortcutsHelp open={isShortcutsHelpOpen} onOpenChange={setIsShortcutsHelpOpen} shortcuts={shortcuts} />
+
+      {/* Settings overlay */}
+      <SettingsOverlay 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+        user={user} 
+      />
     </div>
   )
 }
