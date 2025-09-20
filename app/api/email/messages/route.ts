@@ -48,10 +48,37 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 })
     }
 
-    // Get messages directly from database
+    // Get account details to check provider
+    const { data: accountDetails } = await supabase
+      .from("email_accounts")
+      .select("provider, settings")
+      .eq("id", accountId)
+      .single()
+
     let messages
     let hasMore = false
 
+    // For Gmail accounts, try to sync first if no messages exist
+    if (accountDetails?.provider === "google") {
+      const { data: existingMessages } = await supabase
+        .from("email_metadata")
+        .select("id")
+        .eq("account_id", accountId)
+        .limit(1)
+
+      // If no messages exist, try to sync from Gmail
+      if (!existingMessages || existingMessages.length === 0) {
+        try {
+          const syncService = new EmailSyncService()
+          await syncService.syncAccount(accountId)
+        } catch (syncError) {
+          console.error("Gmail sync error:", syncError)
+          // Continue with empty results if sync fails
+        }
+      }
+    }
+
+    // Get messages from database
     if (query) {
       const { data: searchResults, error: searchError } = await supabase
         .from("email_metadata")

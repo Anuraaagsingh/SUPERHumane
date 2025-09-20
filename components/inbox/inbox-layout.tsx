@@ -11,7 +11,7 @@ import { SettingsOverlay } from "@/components/settings-overlay"
 import { KeyboardShortcutsHelp } from "@/components/keyboard/keyboard-shortcuts-help"
 import { ShortcutIndicator } from "@/components/keyboard/shortcut-indicator"
 import { Button } from "@/components/ui/button"
-import { Search, RefreshCw, Edit, HelpCircle } from "lucide-react"
+import { Search, RefreshCw, Edit, HelpCircle, PanelLeft, PanelRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useEmailSync, useMessages, useInfiniteMessages, useInfiniteScroll } from "@/hooks/use-email-sync"
 import { useGmailShortcuts, useTwoKeyShortcuts } from "@/hooks/use-keyboard-shortcuts"
@@ -32,6 +32,7 @@ export function InboxLayout({ user }: InboxLayoutProps) {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isQuickView, setIsQuickView] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentAccount, setCurrentAccount] = useState<any>(null)
   const { toast } = useToast()
@@ -234,6 +235,14 @@ export function InboxLayout({ user }: InboxLayoutProps) {
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setIsQuickView(!isQuickView)}
+            title={isQuickView ? "Show message view" : "Hide message view"}
+          >
+            {isQuickView ? <PanelRight className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+          </Button>
           <Button variant="ghost" size="sm" onClick={handleSync} disabled={isSyncing || !currentAccount}>
             <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />
           </Button>
@@ -259,7 +268,7 @@ export function InboxLayout({ user }: InboxLayoutProps) {
         />
 
         {/* Email list */}
-        <div className="w-80 border-r border-border flex flex-col">
+        <div className={`${isQuickView ? 'flex-1' : 'w-80'} border-r border-border flex flex-col`}>
           <div className="p-4 border-b border-border">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold capitalize">{selectedFolder}</h2>
@@ -283,40 +292,42 @@ export function InboxLayout({ user }: InboxLayoutProps) {
         </div>
 
         {/* Message view */}
-        <div className="flex-1">
-          {selectedMessage ? (
-            <MessageView 
-              message={selectedMessage} 
-              account={currentAccount}
-              onReply={(replyData) => {
-                setComposerData(replyData)
-                setIsComposerOpen(true)
-              }}
-              onForward={(forwardData) => {
-                setComposerData(forwardData)
-                setIsComposerOpen(true)
-              }}
-            />
-          ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <h3 className="text-lg font-medium mb-2">No message selected</h3>
-                <p className="text-sm">Choose an email from the list to read it</p>
-                <div className="mt-4 text-xs space-y-1">
-                  <p>
-                    Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">C</kbd> to compose
-                  </p>
-                  <p>
-                    Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">⌘K</kbd> for commands
-                  </p>
-                  <p>
-                    Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">?</kbd> for help
-                  </p>
+        {!isQuickView && (
+          <div className="flex-1">
+            {selectedMessage ? (
+              <MessageView 
+                message={selectedMessage} 
+                account={currentAccount}
+                onReply={(replyData) => {
+                  setComposerData(replyData)
+                  setIsComposerOpen(true)
+                }}
+                onForward={(forwardData) => {
+                  setComposerData(forwardData)
+                  setIsComposerOpen(true)
+                }}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <h3 className="text-lg font-medium mb-2">No message selected</h3>
+                  <p className="text-sm">Choose an email from the list to read it</p>
+                  <div className="mt-4 text-xs space-y-1">
+                    <p>
+                      Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">C</kbd> to compose
+                    </p>
+                    <p>
+                      Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">⌘K</kbd> for commands
+                    </p>
+                    <p>
+                      Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">?</kbd> for help
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Shortcut indicator */}
