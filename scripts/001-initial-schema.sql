@@ -52,6 +52,8 @@ CREATE TABLE email_metadata (
   sender_name TEXT,
   recipient_emails TEXT[],
   labels TEXT[] DEFAULT '{}',
+  snippet TEXT, -- Email preview/snippet
+  has_attachments BOOLEAN DEFAULT false,
   is_read BOOLEAN DEFAULT false,
   is_starred BOOLEAN DEFAULT false,
   is_archived BOOLEAN DEFAULT false,

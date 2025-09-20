@@ -106,7 +106,20 @@ export async function GET(request: NextRequest) {
       messages = messageResults || []
     }
 
-    hasMore = messages.length === limit
+    // Check if there are more messages
+    if (messages.length === limit) {
+      const { data: nextPageCheck } = await supabase
+        .from("email_metadata")
+        .select("id")
+        .eq("account_id", accountId)
+        .order("received_at", { ascending: false })
+        .range(offset + limit, offset + limit)
+        .limit(1)
+      
+      hasMore = nextPageCheck && nextPageCheck.length > 0
+    } else {
+      hasMore = false
+    }
 
     return NextResponse.json({ messages, hasMore })
   } catch (error: any) {

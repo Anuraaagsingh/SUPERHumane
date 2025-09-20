@@ -72,7 +72,7 @@ export function useInfiniteMessages(accountId: string, query?: string) {
     queryFn: async ({ pageParam = 0 }) => {
       const params = new URLSearchParams({
         accountId,
-        page: pageParam.toString(),
+        offset: (pageParam * 20).toString(),
         limit: "20",
         ...(query && { query }),
       })

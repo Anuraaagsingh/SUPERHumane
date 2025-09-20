@@ -12,21 +12,16 @@ export class EmailSyncService {
   }
 
   private async initSupabase() {
-    const cookieStore = await cookies()
     const { url } = getSupabaseConfig()
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder_service_role_key'
     
     this.supabase = createServerClient(url, serviceRoleKey, {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return []
         },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-          }
+        setAll() {
+          // No-op for service role client
         },
       },
     })
@@ -142,17 +137,59 @@ export class EmailSyncService {
     const headers = message.payload?.headers || []
     const getHeader = (name: string) => headers.find((h: any) => h.name.toLowerCase() === name.toLowerCase())?.value
 
+    // Extract snippet from message
+    let snippet = message.snippet || ""
+    
+    // If no snippet, try to extract from body
+    if (!snippet && message.payload?.body?.data) {
+      try {
+        const bodyText = Buffer.from(message.payload.body.data, 'base64').toString('utf-8')
+        snippet = bodyText.substring(0, 200).replace(/\n/g, ' ').trim()
+      } catch (e) {
+        // Ignore body parsing errors
+      }
+    }
+
+    // Check for attachments
+    const hasAttachments = this.checkForAttachments(message.payload)
+
     return {
       id: message.id,
       threadId: message.threadId,
       subject: getHeader("Subject") || "",
       from: getHeader("From") || "",
       to: getHeader("To") || "",
+      snippet: snippet,
+      hasAttachments: hasAttachments,
       isRead: !message.labelIds?.includes("UNREAD"),
       isStarred: message.labelIds?.includes("STARRED"),
       internalDate: new Date(Number.parseInt(message.internalDate)),
       labelIds: message.labelIds || [],
     }
+  }
+
+  private checkForAttachments(payload: any): boolean {
+    if (!payload) return false
+    
+    // Check if there are parts with attachments
+    if (payload.parts) {
+      for (const part of payload.parts) {
+        if (part.filename || part.body?.attachmentId) {
+          return true
+        }
+        // Recursively check nested parts
+        if (part.parts && this.checkForAttachments(part)) {
+          return true
+        }
+      }
+    }
+    
+    // Check if the main body has an attachment
+    if (payload.filename || payload.body?.attachmentId) {
+      return true
+    }
+    
+    return false
   }
 
   private async saveMessage(accountId: string, message: any, provider: string) {
@@ -166,6 +203,8 @@ export class EmailSyncService {
         sender_name: provider === "gmail" ? this.extractName(message.from) : message.from?.emailAddress?.name,
         recipient_emails: provider === "gmail" ? [message.to] : [message.toRecipients?.[0]?.emailAddress?.address],
         labels: provider === "gmail" ? message.labelIds : message.categories,
+        snippet: message.snippet || "",
+        has_attachments: message.hasAttachments || false,
         is_read: message.isRead,
         is_starred: provider === "gmail" ? message.isStarred : message.flag?.flagStatus === "flagged",
         received_at: provider === "gmail" ? message.internalDate : new Date(message.receivedDateTime),

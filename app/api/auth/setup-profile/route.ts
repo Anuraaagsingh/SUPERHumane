@@ -22,6 +22,8 @@ export async function POST() {
   } = await supabase.auth.getUser()
 
   console.log("[DEBUG] Setup profile - User:", user?.email, "Auth error:", authError)
+  console.log("[DEBUG] User metadata:", JSON.stringify(user?.app_metadata, null, 2))
+  console.log("[DEBUG] User session:", JSON.stringify(user?.session, null, 2))
 
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -61,38 +63,38 @@ export async function POST() {
 
     // Create email account record
     const provider = user.app_metadata?.provider || "google"
-    const providerToken = user.session?.provider_token
-    const providerRefreshToken = user.session?.provider_refresh_token
+    const providerToken = user.session?.provider_token || user.app_metadata?.provider_token
+    const providerRefreshToken = user.session?.provider_refresh_token || user.app_metadata?.provider_refresh_token
 
-    // For demo accounts or when no provider token, create a demo account
-    if (providerToken || user.email === "demo@mastermail.com") {
-      const { error: accountError } = await supabase.from("email_accounts").upsert(
-        {
-          user_id: user.id,
-          provider: user.email === "demo@mastermail.com" ? "demo" : provider,
-          email: user.email!,
-          display_name: user.user_metadata?.full_name || user.user_metadata?.name,
-          access_token: providerToken || "demo_access_token",
-          refresh_token: providerRefreshToken || "demo_refresh_token",
-          settings: {
-            sync_enabled: user.email === "demo@mastermail.com" ? false : true,
-            sync_frequency: 300, // 5 minutes
-          },
+    console.log("[DEBUG] Provider:", provider, "Token:", !!providerToken, "Refresh:", !!providerRefreshToken)
+
+    // Always create an email account for the user
+    const { data: accountData, error: accountError } = await supabase.from("email_accounts").upsert(
+      {
+        user_id: user.id,
+        provider: user.email === "demo@mastermail.com" ? "demo" : provider,
+        email: user.email!,
+        display_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email!.split("@")[0],
+        access_token: providerToken || "demo_access_token",
+        refresh_token: providerRefreshToken || "demo_refresh_token",
+        settings: {
+          sync_enabled: user.email === "demo@mastermail.com" ? false : true,
+          sync_frequency: 300, // 5 minutes
         },
-        {
-          onConflict: "user_id,provider,email",
-        },
-      )
+      },
+      {
+        onConflict: "user_id,provider,email",
+      },
+    ).select().single()
 
-      if (accountError) {
-        console.error("Account creation error:", accountError)
-        return NextResponse.json({ error: "Failed to create email account" }, { status: 500 })
-      }
+    if (accountError) {
+      console.error("Account creation error:", accountError)
+      return NextResponse.json({ error: "Failed to create email account" }, { status: 500 })
+    }
 
-      // For demo accounts, populate demo emails
-      if (user.email === "demo@mastermail.com") {
-        await populateDemoEmails(user.id, supabase)
-      }
+    // For demo accounts, populate demo emails
+    if (user.email === "demo@mastermail.com") {
+      await populateDemoEmails(user.id, supabase)
     }
 
     return NextResponse.json({ success: true })
@@ -136,6 +138,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "Sarah Chen",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["work", "important"],
+        snippet: "Hi team, I wanted to update everyone on our Q4 mobile app launch progress. We're on track for the December release with some exciting new features...",
+        has_attachments: true,
         is_read: false,
         is_starred: true,
         is_archived: false,
@@ -151,6 +155,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "ShopMart Deals",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["promotions"],
+        snippet: "Don't miss out on our biggest sale of the year! Get 70% off on all items including electronics, clothing, and home goods. Limited time offer ends Sunday...",
+        has_attachments: false,
         is_read: true,
         is_starred: false,
         is_archived: false,
@@ -166,6 +172,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "SecureBank Security",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["important", "security"],
+        snippet: "Your verification code is: 847392. This code will expire in 10 minutes. If you didn't request this code, please contact our support team immediately.",
+        has_attachments: false,
         is_read: false,
         is_starred: false,
         is_archived: false,
@@ -181,6 +189,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "Twitter",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["social"],
+        snippet: "You have 3 new mentions on Twitter. @john_doe mentioned you in a tweet about the new product launch. @tech_news shared your latest article...",
+        has_attachments: false,
         is_read: true,
         is_starred: false,
         is_archived: false,
@@ -196,6 +206,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "Mike Johnson",
         recipient_emails: ["demo@mastermail.com", "team@techcorp.com"],
         labels: ["work", "meeting"],
+        snippet: "Hi team, just a reminder about our Product Strategy Review meeting tomorrow at 2PM. We'll be discussing the Q1 roadmap and budget allocation. Please prepare your updates...",
+        has_attachments: true,
         is_read: false,
         is_starred: false,
         is_archived: false,
@@ -212,6 +224,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "Tech Weekly",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["newsletters"],
+        snippet: "This week in tech: OpenAI releases GPT-5 with enhanced reasoning capabilities, Tesla announces breakthrough in battery technology, and 3 new unicorn startups emerge...",
+        has_attachments: false,
         is_read: true,
         is_starred: false,
         is_archived: false,
@@ -227,6 +241,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "Mom",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["personal", "family"],
+        snippet: "Hi honey, just wanted to check if you can make it to Thanksgiving dinner this year. Grandma is asking about you and we'd love to have you here. Let me know soon...",
+        has_attachments: false,
         is_read: false,
         is_starred: true,
         is_archived: false,
@@ -242,6 +258,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "Alex Kim",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["work", "code-review"],
+        snippet: "Hey, could you review the user authentication feature PR? I've implemented OAuth2 with Google and Microsoft providers. The main changes are in the auth service...",
+        has_attachments: false,
         is_read: false,
         is_starred: false,
         is_archived: false,
@@ -257,6 +275,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "Premium Service",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["billing", "important"],
+        snippet: "Your Premium subscription will expire in 7 days. To continue enjoying all our premium features, please renew your subscription. We're offering a 20% discount...",
+        has_attachments: false,
         is_read: true,
         is_starred: false,
         is_archived: false,
@@ -272,6 +292,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "LinkedIn",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["social", "linkedin"],
+        snippet: "You have 5 new connection requests waiting for your response. Sarah Johnson, Product Manager at TechCorp, wants to connect. View all requests to expand your network...",
+        has_attachments: false,
         is_read: true,
         is_starred: false,
         is_archived: false,
@@ -287,6 +309,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "QA Team",
         recipient_emails: ["demo@mastermail.com", "dev-team@techcorp.com"],
         labels: ["work", "urgent", "bug"],
+        snippet: "URGENT: We've discovered a critical bug in the payment processing system that's causing duplicate charges. This affects 15% of transactions. Immediate fix required...",
+        has_attachments: true,
         is_read: false,
         is_starred: true,
         is_archived: false,
@@ -302,6 +326,8 @@ async function populateDemoEmails(userId: string, supabase: any) {
         sender_name: "HR Events Team",
         recipient_emails: ["demo@mastermail.com"],
         labels: ["personal", "event"],
+        snippet: "You're cordially invited to our Annual Company Holiday Party! Join us on December 15th at the Grand Ballroom for an evening of celebration, food, and fun...",
+        has_attachments: true,
         is_read: true,
         is_starred: false,
         is_archived: true,
