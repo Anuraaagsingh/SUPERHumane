@@ -18,6 +18,7 @@ import { useGmailShortcuts, useTwoKeyShortcuts } from "@/hooks/use-keyboard-shor
 import { createClient } from "@/lib/supabase"
 import { useQuery } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
+import { logger } from "@/lib/logger"
 
 interface InboxLayoutProps {
   user: any
@@ -101,13 +102,27 @@ export function InboxLayout({ user }: InboxLayoutProps) {
     try {
       const response = await fetch('/api/debug/emails')
       const data = await response.json()
-      console.log('[DEBUG] Debug emails response:', data)
-      toast({
-        title: "Debug Info",
-        description: `Found ${data.totalEmails} emails across ${data.accounts.length} accounts`,
-      })
+      logger.info('Debug emails response', data)
+      
+      if (data.code === 'TABLES_MISSING') {
+        toast({
+          title: "Database Setup Required",
+          description: "Please run the database setup script in Supabase SQL Editor",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Debug Info",
+          description: `Found ${data.totalEmails} emails across ${data.accounts.length} accounts`,
+        })
+      }
     } catch (error) {
-      console.error('Debug error:', error)
+      logger.error('Debug error', error)
+      toast({
+        title: "Debug Failed",
+        description: "Could not fetch debug information",
+        variant: "destructive",
+      })
     }
   }
 
@@ -115,7 +130,7 @@ export function InboxLayout({ user }: InboxLayoutProps) {
     try {
       const response = await fetch('/api/debug/populate-demo', { method: 'POST' })
       const data = await response.json()
-      console.log('[DEBUG] Populate demo response:', data)
+      logger.info('Populate demo response', data)
       toast({
         title: "Demo Emails",
         description: data.message || "Demo emails populated",
@@ -123,7 +138,40 @@ export function InboxLayout({ user }: InboxLayoutProps) {
       // Refresh the page to see changes
       window.location.reload()
     } catch (error) {
-      console.error('Populate demo error:', error)
+      logger.error('Populate demo error', error)
+      toast({
+        title: "Demo Failed",
+        description: "Could not populate demo emails",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDatabaseHealth = async () => {
+    try {
+      const response = await fetch('/api/health/database')
+      const data = await response.json()
+      logger.info('Database health check', data)
+      
+      if (data.status === 'healthy') {
+        toast({
+          title: "Database Healthy",
+          description: "All tables are working correctly",
+        })
+      } else {
+        toast({
+          title: "Database Issues",
+          description: `Status: ${data.status}. Check console for details.`,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      logger.error('Database health check error', error)
+      toast({
+        title: "Health Check Failed",
+        description: "Could not check database status",
+        variant: "destructive",
+      })
     }
   }
 
@@ -285,6 +333,9 @@ export function InboxLayout({ user }: InboxLayoutProps) {
           </Button>
           <Button variant="ghost" size="sm" onClick={handlePopulateDemo} title="Populate demo">
             📧
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleDatabaseHealth} title="Check database">
+            🏥
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setIsComposerOpen(true)}>
             <Edit className="w-4 h-4" />

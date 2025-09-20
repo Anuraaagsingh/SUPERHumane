@@ -27,16 +27,16 @@ export function AuthForm() {
     console.log("[v0] Starting Google OAuth")
     setIsLoading("google")
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/login/callback`,
-          scopes:
-            "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify",
-        },
-      })
-      console.log("[v0] Google OAuth result - error:", error)
-      if (error) throw error
+      // Use our custom Gmail OAuth flow
+      const response = await fetch('/api/auth/gmail-auth')
+      const { authUrl } = await response.json()
+      
+      if (!authUrl) {
+        throw new Error('Failed to get Gmail auth URL')
+      }
+      
+      // Redirect to Gmail OAuth
+      window.location.href = authUrl
     } catch (error: any) {
       console.error("[v0] Google auth error:", error)
       toast({
@@ -44,7 +44,6 @@ export function AuthForm() {
         description: error.message || "Failed to authenticate with Google",
         variant: "destructive",
       })
-    } finally {
       setIsLoading(null)
     }
   }
