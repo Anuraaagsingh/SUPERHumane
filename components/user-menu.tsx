@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Settings, LogOut, User, Moon, Sun } from "lucide-react"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 
@@ -30,10 +30,7 @@ export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  const supabase = createClient()
 
   const handleSignOut = async () => {
     setIsLoading(true)

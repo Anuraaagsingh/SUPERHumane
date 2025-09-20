@@ -1,7 +1,8 @@
 "use client"
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
+import { useState, useEffect, useCallback } from "react"
 
 export function useEmailSync() {
   const { toast } = useToast()
@@ -63,6 +64,76 @@ export function useMessages(accountId: string, query?: string) {
     },
     enabled: !!accountId,
   })
+}
+
+export function useInfiniteMessages(accountId: string, query?: string) {
+  return useInfiniteQuery({
+    queryKey: ["messages-infinite", accountId, query],
+    queryFn: async ({ pageParam = 0 }) => {
+      const params = new URLSearchParams({
+        accountId,
+        page: pageParam.toString(),
+        limit: "20",
+        ...(query && { query }),
+      })
+
+      const response = await fetch(`/api/email/messages?${params}`)
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch messages")
+      }
+
+      const data = await response.json()
+      return {
+        messages: data.messages || [],
+        nextCursor: data.hasMore ? pageParam + 1 : null
+      }
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled: !!accountId,
+    initialPageParam: 0,
+  })
+}
+
+export function useInfiniteScroll(callback: () => void, hasNextPage: boolean, isFetching: boolean) {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleScroll = useCallback(() => {
+    if (isLoading || isFetching || !hasNextPage) return
+
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement
+    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 1000
+
+    if (isNearBottom) {
+      setIsLoading(true)
+      callback()
+    }
+  }, [callback, hasNextPage, isFetching, isLoading])
+
+  useEffect(() => {
+    const handleScrollThrottled = throttle(handleScroll, 200)
+    window.addEventListener('scroll', handleScrollThrottled)
+    return () => window.removeEventListener('scroll', handleScrollThrottled)
+  }, [handleScroll])
+
+  useEffect(() => {
+    if (!isFetching) {
+      setIsLoading(false)
+    }
+  }, [isFetching])
+
+  return { isLoading }
+}
+
+function throttle(func: Function, limit: number) {
+  let inThrottle: boolean
+  return function(this: any, ...args: any[]) {
+    if (!inThrottle) {
+      func.apply(this, args)
+      inThrottle = true
+      setTimeout(() => inThrottle = false, limit)
+    }
+  }
 }
 
 export function useSendEmail() {

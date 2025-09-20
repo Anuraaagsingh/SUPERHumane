@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Clock, Trash2 } from "lucide-react"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase"
 import { format } from "date-fns"
 
 interface ScheduledEmail {
@@ -24,10 +24,7 @@ interface ScheduledEmail {
 export function ScheduledEmailsManager() {
   const [scheduledEmails, setScheduledEmails] = useState<ScheduledEmail[]>([])
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  const supabase = createClient()
 
   useEffect(() => {
     loadScheduledEmails()

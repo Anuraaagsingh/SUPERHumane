@@ -30,7 +30,7 @@ export function AuthForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-y          redirectTo: `${window.location.origin}/login/callback`,
+          redirectTo: `${window.location.origin}/login/callback`,
           scopes:
             "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify",
         },

@@ -1,11 +1,8 @@
 import { jobScheduler, type ScheduledJob } from "./scheduler"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase"
 
 export class JobProcessor {
-  private supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  private supabase = createClient()
   private isProcessing = false
 
   async start() {

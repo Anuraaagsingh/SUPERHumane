@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { google } from "googleapis"
 import { Client } from "@microsoft/microsoft-graph-client"
+import { getSupabaseConfig } from "@/lib/supabase"
 
 export class EmailSyncService {
   private supabase: any
@@ -12,7 +13,10 @@ export class EmailSyncService {
 
   private async initSupabase() {
     const cookieStore = await cookies()
-    this.supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    const { url } = getSupabaseConfig()
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder_service_role_key'
+    
+    this.supabase = createServerClient(url, serviceRoleKey, {
       cookies: {
         getAll() {
           return cookieStore.getAll()
