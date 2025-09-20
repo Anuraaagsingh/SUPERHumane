@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Gmail OAuth not configured',
-          details: 'GOOGLE_CLIENT_ID environment variable is missing. Please configure Gmail OAuth in your environment variables.'
+          details: 'GOOGLE_CLIENT_ID environment variable is missing. Please create a .env.local file with your Google OAuth credentials. See setup-oauth.md for instructions.',
+          setupRequired: true
         },
         { status: 500 }
       )
@@ -20,7 +21,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Gmail OAuth not configured',
-          details: 'GOOGLE_CLIENT_SECRET environment variable is missing. Please configure Gmail OAuth in your environment variables.'
+          details: 'GOOGLE_CLIENT_SECRET environment variable is missing. Please create a .env.local file with your Google OAuth credentials. See setup-oauth.md for instructions.',
+          setupRequired: true
         },
         { status: 500 }
       )

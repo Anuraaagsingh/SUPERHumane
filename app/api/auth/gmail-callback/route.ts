@@ -12,14 +12,19 @@ export async function GET(request: NextRequest) {
 
   console.log('[Gmail OAuth] Callback received:', { code: !!code, state, error })
 
+  // Determine the correct base URL based on environment
+  const baseUrl = process.env.NODE_ENV === 'production' 
+    ? process.env.NEXT_PUBLIC_SITE_URL || 'https://super-humane-mvt9kmllb-anurags-projects-47784640.vercel.app'
+    : 'http://localhost:3000'
+
   if (error) {
     console.error('[Gmail OAuth] Error:', error)
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/login?error=${encodeURIComponent(error)}`)
+    return NextResponse.redirect(`${baseUrl}/login?error=${encodeURIComponent(error)}`)
   }
 
   if (!code) {
     console.error('[Gmail OAuth] No code provided')
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/login?error=No authorization code provided`)
+    return NextResponse.redirect(`${baseUrl}/login?error=No authorization code provided`)
   }
 
   try {
@@ -76,7 +81,7 @@ export async function GET(request: NextRequest) {
 
       if (signUpError) {
         console.error('[Gmail OAuth] Sign up error:', signUpError)
-        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/login?error=Failed to create user`)
+        return NextResponse.redirect(`${baseUrl}/login?error=Failed to create user`)
       }
 
       // Sign in after creating user
@@ -87,7 +92,7 @@ export async function GET(request: NextRequest) {
 
       if (signInError) {
         console.error('[Gmail OAuth] Sign in error:', signInError)
-        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/login?error=Failed to sign in`)
+        return NextResponse.redirect(`${baseUrl}/login?error=Failed to sign in`)
       }
     }
 
@@ -96,7 +101,7 @@ export async function GET(request: NextRequest) {
     
     if (userError || !user) {
       console.error('[Gmail OAuth] User error:', userError)
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/login?error=Failed to get user`)
+      return NextResponse.redirect(`${baseUrl}/login?error=Failed to get user`)
     }
 
     // Create or update email account
@@ -172,10 +177,10 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('[Gmail OAuth] Success, redirecting to inbox')
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/inbox`)
+    return NextResponse.redirect(`${baseUrl}/inbox`)
 
   } catch (error) {
     console.error('[Gmail OAuth] Unexpected error:', error)
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/login?error=Gmail authentication failed`)
+    return NextResponse.redirect(`${baseUrl}/login?error=Gmail authentication failed`)
   }
 }

@@ -40,6 +40,12 @@ export function LoginPage({ error }: { error?: string }) {
         {error && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-md">
             <p className="text-red-300 text-sm">{decodeURIComponent(error)}</p>
+            {error.includes('Gmail authentication failed') && (
+              <div className="mt-2 text-xs text-red-400">
+                <p>This usually means Gmail OAuth is not configured.</p>
+                <p>Please check the setup-oauth.md file for instructions.</p>
+              </div>
+            )}
           </div>
         )}
         <AuthForm />

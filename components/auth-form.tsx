@@ -32,7 +32,17 @@ export function AuthForm() {
       const data = await response.json()
       
       if (!response.ok) {
-        throw new Error(data.details || data.error || 'Failed to get Gmail auth URL')
+        if (data.setupRequired) {
+          toast({
+            title: "Gmail OAuth Setup Required",
+            description: "Please configure your Google OAuth credentials. See setup-oauth.md for instructions.",
+            variant: "destructive",
+          })
+        } else {
+          throw new Error(data.details || data.error || 'Failed to get Gmail auth URL')
+        }
+        setIsLoading(null)
+        return
       }
       
       if (!data.authUrl) {

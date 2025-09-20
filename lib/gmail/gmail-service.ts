@@ -7,7 +7,13 @@ export class GmailService {
   constructor() {
     const clientId = process.env.GOOGLE_CLIENT_ID
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET
-    const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/gmail-callback`
+    
+    // Determine the correct redirect URI based on environment
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? process.env.NEXT_PUBLIC_SITE_URL || 'https://super-humane-mvt9kmllb-anurags-projects-47784640.vercel.app'
+      : 'http://localhost:3000'
+    
+    const redirectUri = `${baseUrl}/api/auth/gmail-callback`
 
     if (!clientId) {
       throw new Error('GOOGLE_CLIENT_ID environment variable is required')
@@ -19,7 +25,8 @@ export class GmailService {
     console.log('[Gmail Service] Initializing with:', {
       clientId: clientId ? `${clientId.substring(0, 10)}...` : 'MISSING',
       clientSecret: clientSecret ? 'SET' : 'MISSING',
-      redirectUri
+      redirectUri,
+      environment: process.env.NODE_ENV
     })
 
     this.oauth2Client = new google.auth.OAuth2(
