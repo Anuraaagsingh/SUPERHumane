@@ -15,9 +15,11 @@ interface EmailListProps {
   selectedIndex: number
   onMessageSelect: (message: any, index: number) => void
   isLoading: boolean
+  isFetchingMore?: boolean
+  hasMore?: boolean
 }
 
-export function EmailList({ messages, selectedMessage, selectedIndex, onMessageSelect, isLoading }: EmailListProps) {
+export function EmailList({ messages, selectedMessage, selectedIndex, onMessageSelect, isLoading, isFetchingMore, hasMore }: EmailListProps) {
   const [selectedMessages, setSelectedMessages] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -146,6 +148,21 @@ export function EmailList({ messages, selectedMessage, selectedIndex, onMessageS
             </div>
           )
         })}
+        
+        {/* Loading indicator for infinite scroll */}
+        {isFetchingMore && (
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+            <span className="ml-2 text-sm text-muted-foreground">Loading more emails...</span>
+          </div>
+        )}
+        
+        {/* End of list indicator */}
+        {!hasMore && messages.length > 0 && (
+          <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+            No more emails to load
+          </div>
+        )}
       </div>
     </div>
   )

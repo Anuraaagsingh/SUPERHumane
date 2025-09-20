@@ -1,4 +1,4 @@
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase"
 
 export interface ScheduledJob {
   id: string
@@ -13,10 +13,7 @@ export interface ScheduledJob {
 }
 
 export class JobScheduler {
-  private supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  private supabase = createClient()
 
   async scheduleEmail(emailData: any, scheduledFor: Date) {
     const { data, error } = await this.supabase

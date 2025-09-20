@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Clock, Calendar } from "lucide-react"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase"
 import { addHours, addDays, format } from "date-fns"
 
 interface SnoozeDialogProps {
@@ -17,10 +17,7 @@ interface SnoozeDialogProps {
 export function SnoozeDialog({ isOpen, onClose, messageId, onSnooze }: SnoozeDialogProps) {
   const [snoozeTime, setSnoozeTime] = useState("")
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  const supabase = createClient()
 
   const snoozeOptions = [
     { value: "1hour", label: "In 1 hour", icon: Clock },

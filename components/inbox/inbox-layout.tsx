@@ -12,7 +12,7 @@ import { ShortcutIndicator } from "@/components/keyboard/shortcut-indicator"
 import { Button } from "@/components/ui/button"
 import { Search, RefreshCw, Edit, HelpCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { useEmailSync, useMessages } from "@/hooks/use-email-sync"
+import { useEmailSync, useMessages, useInfiniteMessages, useInfiniteScroll } from "@/hooks/use-email-sync"
 import { useGmailShortcuts, useTwoKeyShortcuts } from "@/hooks/use-keyboard-shortcuts"
 import { createClient } from "@/lib/supabase"
 import { useQuery } from "@tanstack/react-query"
@@ -52,7 +52,21 @@ export function InboxLayout({ user }: InboxLayoutProps) {
   }, [accounts, currentAccount])
 
   const { syncAccount, isSyncing } = useEmailSync()
-  const { data: messages, isLoading: isLoadingMessages } = useMessages(currentAccount?.id, searchQuery || undefined)
+  const { 
+    data: infiniteData, 
+    isLoading: isLoadingMessages, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage 
+  } = useInfiniteMessages(currentAccount?.id, searchQuery || undefined)
+  
+  const messages = infiniteData?.pages.flatMap(page => page.messages) || []
+  
+  useInfiniteScroll(
+    () => fetchNextPage(),
+    hasNextPage || false,
+    isFetchingNextPage || false
+  )
 
   // Update selected message when messages change
   useEffect(() => {
@@ -260,6 +274,8 @@ export function InboxLayout({ user }: InboxLayoutProps) {
               setSelectedMessageIndex(index)
             }}
             isLoading={isLoadingMessages}
+            isFetchingMore={isFetchingNextPage}
+            hasMore={hasNextPage}
           />
         </div>
 
