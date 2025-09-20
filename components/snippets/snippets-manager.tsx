@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -32,15 +32,15 @@ export function SnippetsManager() {
 
   useEffect(() => {
     loadSnippets()
-  }, [])
+  }, [loadSnippets])
 
-  const loadSnippets = async () => {
+  const loadSnippets = useCallback(async () => {
     const { data, error } = await supabase.from("snippets").select("*").order("created_at", { ascending: false })
 
     if (!error && data) {
       setSnippets(data)
     }
-  }
+  }, [supabase])
 
   const saveSnippet = async () => {
     if (!shortcut.trim() || !content.trim()) return

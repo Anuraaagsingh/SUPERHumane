@@ -2,6 +2,8 @@ import { getCurrentUser, getUserProfile } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { SettingsForm } from "@/components/settings-form"
 
+export const dynamic = 'force-dynamic'
+
 export default async function SettingsPage() {
   const user = await getCurrentUser()
   const profile = await getUserProfile()

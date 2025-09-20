@@ -4,22 +4,24 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Mail, Chrome, Loader2 } from "lucide-react"
-import { createBrowserClient } from "@supabase/ssr"
-import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/hooks/use-auth"
 
 export function AuthForm() {
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const [showEmailAuth, setShowEmailAuth] = useState(false) // Added email auth state
   const [email, setEmail] = useState("") // Added email state
   const [password, setPassword] = useState("") // Added password state
-  const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuth()
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  const supabase = createClient()
+
+  // Redirect if already authenticated
+  if (user) {
+    return null
+  }
 
   const handleGoogleAuth = async () => {
     console.log("[v0] Starting Google OAuth")
@@ -28,6 +30,7 @@ export function AuthForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
+y          redirectTo: `${window.location.origin}/login/callback`,
           scopes:
             "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify",
         },
@@ -52,6 +55,7 @@ export function AuthForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "azure",
         options: {
+          redirectTo: `${window.location.origin}/login/callback`,
           scopes:
             "https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/Mail.ReadWrite",
         },
@@ -94,7 +98,7 @@ export function AuthForm() {
           title: "Login Successful",
           description: "Welcome to MasterMail!",
         })
-        // Don't manually redirect, let the auth system handle it
+        // Auth state change will trigger redirect via useAuth hook
       }
     } catch (error: any) {
       toast({
@@ -143,7 +147,7 @@ export function AuthForm() {
           title: "Demo login successful",
           description: "Welcome to MasterMail!",
         })
-        router.push("/inbox")
+        // Auth state change will trigger redirect via useAuth hook
       }
     } catch (error: any) {
       console.error("[v0] Demo login error:", error)
@@ -283,7 +287,7 @@ export function AuthForm() {
         )}
 
         <div className="text-center text-sm text-slate-400 mt-6 space-y-2">
-          <p>We'll sync your emails securely and never store your passwords</p>
+          <p>We&apos;ll sync your emails securely and never store your passwords</p>
           <p className="text-xs">
             By continuing, you agree to our{" "}
             <a href="/privacy" className="text-white hover:underline">

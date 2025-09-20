@@ -1,13 +1,7 @@
-import { getCurrentUser } from "@/lib/auth"
-import { redirect } from "next/navigation"
-import { InboxLayout } from "@/components/inbox/inbox-layout"
+import { InboxPage } from "@/components/inbox/inbox-page"
 
-export default async function InboxPage() {
-  const user = await getCurrentUser()
+export const dynamic = 'force-dynamic'
 
-  if (!user) {
-    redirect("/login")
-  }
-
-  return <InboxLayout user={user} />
+export default function InboxPageRoute() {
+  return <InboxPage />
 }

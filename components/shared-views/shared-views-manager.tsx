@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -34,15 +34,15 @@ export function SharedViewsManager() {
 
   useEffect(() => {
     loadSharedViews()
-  }, [])
+  }, [loadSharedViews])
 
-  const loadSharedViews = async () => {
+  const loadSharedViews = useCallback(async () => {
     const { data, error } = await supabase.from("shared_views").select("*").order("created_at", { ascending: false })
 
     if (!error && data) {
       setSharedViews(data)
     }
-  }
+  }, [supabase])
 
   const createSharedView = async () => {
     if (!name.trim() || !query.trim()) return

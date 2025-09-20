@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -76,9 +76,9 @@ export function Composer({ account, onClose, replyTo, draft }: ComposerProps) {
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [to, subject, body])
+  }, [to, subject, body, handleSend])
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!to || !subject || !body) {
       return
     }
@@ -108,7 +108,7 @@ export function Composer({ account, onClose, replyTo, draft }: ComposerProps) {
         },
       })
     }
-  }
+  }, [to, subject, body, isScheduled, scheduledDate, sendEmail, onClose, account.id, cc, bcc])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])

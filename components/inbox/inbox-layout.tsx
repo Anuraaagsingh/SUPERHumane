@@ -14,7 +14,7 @@ import { Search, RefreshCw, Edit, HelpCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useEmailSync, useMessages } from "@/hooks/use-email-sync"
 import { useGmailShortcuts, useTwoKeyShortcuts } from "@/hooks/use-keyboard-shortcuts"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase"
 import { useQuery } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
 
@@ -33,10 +33,7 @@ export function InboxLayout({ user }: InboxLayoutProps) {
   const [currentAccount, setCurrentAccount] = useState<any>(null)
   const { toast } = useToast()
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  const supabase = createClient()
 
   // Get user's email accounts
   const { data: accounts } = useQuery({

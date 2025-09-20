@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -34,9 +34,9 @@ export function RemindersManager() {
 
   useEffect(() => {
     loadReminders()
-  }, [])
+  }, [loadReminders])
 
-  const loadReminders = async () => {
+  const loadReminders = useCallback(async () => {
     const { data, error } = await supabase
       .from("reminders")
       .select(`
@@ -49,7 +49,7 @@ export function RemindersManager() {
     if (!error && data) {
       setReminders(data)
     }
-  }
+  }, [supabase])
 
   const createReminder = async () => {
     if (!selectedMessageId || !reminderTime) return

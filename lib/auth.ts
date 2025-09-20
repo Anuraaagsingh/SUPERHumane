@@ -1,39 +1,40 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { createServerSupabaseClient as createSupabaseClient } from "@/lib/supabase-server"
 import { cache } from "react"
 
-export const createServerSupabaseClient = cache(() => {
-  const cookieStore = cookies()
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
-      },
-    },
-  })
-})
+export const createServerSupabaseClient = cache(() => createSupabaseClient())
 
 export const getCurrentUser = cache(async () => {
-  const supabase = createServerSupabaseClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = createServerSupabaseClient()
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
 
-  if (error || !user) {
+    if (error || !user) {
+      return null
+    }
+
+    return user
+  } catch (error) {
+    // During build time or when Supabase is not configured, return null
+    console.log("Auth check failed:", error)
     return null
   }
-
-  return user
 })
 
 export const getUserProfile = cache(async () => {
-  const supabase = createServerSupabaseClient()
-  const user = await getCurrentUser()
+  try {
+    const supabase = createServerSupabaseClient()
+    const user = await getCurrentUser()
 
-  if (!user) return null
+    if (!user) return null
 
-  const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
+    const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
 
-  return profile
+    return profile
+  } catch (error) {
+    console.log("Profile fetch failed:", error)
+    return null
+  }
 })
