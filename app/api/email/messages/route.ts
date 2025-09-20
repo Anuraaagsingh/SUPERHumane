@@ -21,24 +21,25 @@ export async function GET(request: NextRequest) {
     error: authError,
   } = await supabase.auth.getUser()
 
-  console.log("[DEBUG] Messages API - User:", user?.email, "Auth error:", authError)
+    console.log("[DEBUG] Messages API - User:", user?.email, "Auth error:", authError)
 
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
-  try {
-    const { searchParams } = new URL(request.url)
-    const accountId = searchParams.get("accountId")
-    const limit = Number.parseInt(searchParams.get("limit") || "50")
-    const offset = Number.parseInt(searchParams.get("offset") || "0")
-    const query = searchParams.get("query")
-
-    console.log("[DEBUG] Messages API - Account ID:", accountId, "Limit:", limit, "Offset:", offset)
-
-    if (!accountId) {
-      return NextResponse.json({ error: "Account ID required" }, { status: 400 })
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    try {
+      const { searchParams } = new URL(request.url)
+      const accountId = searchParams.get("accountId")
+      const limit = Number.parseInt(searchParams.get("limit") || "50")
+      const offset = Number.parseInt(searchParams.get("offset") || "0")
+      const query = searchParams.get("query")
+
+      console.log("[DEBUG] Messages API - Account ID:", accountId, "Limit:", limit, "Offset:", offset)
+
+      if (!accountId) {
+        console.log("[DEBUG] No account ID provided, returning empty messages")
+        return NextResponse.json({ messages: [], hasMore: false })
+      }
 
     // Verify account belongs to user
     const { data: account, error: accountError } = await supabase
@@ -84,6 +85,7 @@ export async function GET(request: NextRequest) {
 
     // Get messages from database
     if (query) {
+      console.log("[DEBUG] Searching messages with query:", query)
       const { data: searchResults, error: searchError } = await supabase
         .from("email_metadata")
         .select("*")
@@ -92,9 +94,14 @@ export async function GET(request: NextRequest) {
         .order("received_at", { ascending: false })
         .limit(limit)
 
-      if (searchError) throw searchError
+      if (searchError) {
+        console.error("[DEBUG] Search error:", searchError)
+        throw searchError
+      }
       messages = searchResults || []
+      console.log("[DEBUG] Search results:", messages.length)
     } else {
+      console.log("[DEBUG] Fetching messages for account:", accountId)
       const { data: messageResults, error: messageError } = await supabase
         .from("email_metadata")
         .select("*")
@@ -102,8 +109,12 @@ export async function GET(request: NextRequest) {
         .order("received_at", { ascending: false })
         .range(offset, offset + limit - 1)
 
-      if (messageError) throw messageError
+      if (messageError) {
+        console.error("[DEBUG] Message fetch error:", messageError)
+        throw messageError
+      }
       messages = messageResults || []
+      console.log("[DEBUG] Message results:", messages.length, "messages")
     }
 
     // Check if there are more messages

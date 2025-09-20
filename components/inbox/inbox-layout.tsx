@@ -40,12 +40,15 @@ export function InboxLayout({ user }: InboxLayoutProps) {
   const supabase = createClient()
 
   // Get user's email accounts
-  const { data: accounts } = useQuery({
+  const { data: accounts, isLoading: accountsLoading } = useQuery({
     queryKey: ["email-accounts", user.id],
     queryFn: async () => {
       console.log("[DEBUG] Fetching accounts for user:", user.id)
-      const { data, error } = await supabase.from("email_accounts").select("*").eq("user_id", user.id).eq("is_active", true)
+      const { data, error } = await supabase.from("email_accounts").select("*").eq("user_id", user.id)
       console.log("[DEBUG] Accounts data:", data, "Error:", error)
+      if (error) {
+        console.error("[DEBUG] Accounts error:", error)
+      }
       return data || []
     },
   })
@@ -59,24 +62,19 @@ export function InboxLayout({ user }: InboxLayoutProps) {
 
   const { syncAccount, isSyncing } = useEmailSync()
   const { 
-    data: infiniteData, 
+    data: messages, 
     isLoading: isLoadingMessages, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage 
-  } = useInfiniteMessages(currentAccount?.id, searchQuery || undefined)
+    error: messagesError
+  } = useMessages(currentAccount?.id, searchQuery || undefined)
   
   console.log("[DEBUG] Current account:", currentAccount)
   console.log("[DEBUG] Messages loading:", isLoadingMessages)
-  console.log("[DEBUG] Infinite data:", infiniteData)
+  console.log("[DEBUG] Messages error:", messagesError)
+  console.log("[DEBUG] Messages data:", messages)
+  console.log("[DEBUG] Accounts loading:", accountsLoading)
+  console.log("[DEBUG] Accounts:", accounts)
   
-  const messages = infiniteData?.pages.flatMap(page => page.messages) || []
-  
-  useInfiniteScroll(
-    () => fetchNextPage(),
-    hasNextPage || false,
-    isFetchingNextPage || false
-  )
+  // Removed infinite scroll for now - using simple messages
 
   // Update selected message when messages change
   useEffect(() => {
@@ -96,6 +94,36 @@ export function InboxLayout({ user }: InboxLayoutProps) {
   const handleSync = () => {
     if (currentAccount) {
       syncAccount(currentAccount.id)
+    }
+  }
+
+  const handleDebugEmails = async () => {
+    try {
+      const response = await fetch('/api/debug/emails')
+      const data = await response.json()
+      console.log('[DEBUG] Debug emails response:', data)
+      toast({
+        title: "Debug Info",
+        description: `Found ${data.totalEmails} emails across ${data.accounts.length} accounts`,
+      })
+    } catch (error) {
+      console.error('Debug error:', error)
+    }
+  }
+
+  const handlePopulateDemo = async () => {
+    try {
+      const response = await fetch('/api/debug/populate-demo', { method: 'POST' })
+      const data = await response.json()
+      console.log('[DEBUG] Populate demo response:', data)
+      toast({
+        title: "Demo Emails",
+        description: data.message || "Demo emails populated",
+      })
+      // Refresh the page to see changes
+      window.location.reload()
+    } catch (error) {
+      console.error('Populate demo error:', error)
     }
   }
 
@@ -252,6 +280,12 @@ export function InboxLayout({ user }: InboxLayoutProps) {
           <Button variant="ghost" size="sm" onClick={handleSync} disabled={isSyncing || !currentAccount}>
             <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />
           </Button>
+          <Button variant="ghost" size="sm" onClick={handleDebugEmails} title="Debug emails">
+            🔍
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handlePopulateDemo} title="Populate demo">
+            📧
+          </Button>
           <Button variant="ghost" size="sm" onClick={() => setIsComposerOpen(true)}>
             <Edit className="w-4 h-4" />
           </Button>
@@ -293,8 +327,6 @@ export function InboxLayout({ user }: InboxLayoutProps) {
               setSelectedMessageIndex(index)
             }}
             isLoading={isLoadingMessages}
-            isFetchingMore={isFetchingNextPage}
-            hasMore={hasNextPage}
           />
         </div>
 
