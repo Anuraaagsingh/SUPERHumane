@@ -1,189 +1,280 @@
--- Insert demo emails for the demo account
-INSERT INTO emails (
-  id,
-  user_id,
-  message_id,
-  thread_id,
-  subject,
-  sender_name,
-  sender_email,
-  recipient_emails,
-  body_text,
-  body_html,
-  received_at,
-  is_read,
-  is_starred,
-  is_important,
-  labels,
-  has_attachments,
-  created_at,
-  updated_at
+-- Populate demo emails for testing
+-- This script creates 12 diverse demo emails with various contexts
+
+-- First, let's create a demo user if it doesn't exist
+INSERT INTO users (id, email, name, avatar_url, settings)
+VALUES (
+  '550e8400-e29b-41d4-a716-446655440000',
+  'demo@mastermail.com',
+  'Demo User',
+  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+  '{
+    "theme": "light",
+    "keyboard_shortcuts": true,
+    "notifications": {
+      "email": true,
+      "push": false
+    },
+    "inbox_splits": [
+      {"name": "Primary", "rules": []},
+      {"name": "Social", "rules": [{"type": "sender_domain", "value": "twitter.com"}]},
+      {"name": "Updates", "rules": [{"type": "sender_domain", "value": "github.com"}]}
+    ]
+  }'
+) ON CONFLICT (email) DO NOTHING;
+
+-- Create a demo email account
+INSERT INTO email_accounts (id, user_id, provider, email, display_name, access_token, refresh_token, settings)
+VALUES (
+  '660e8400-e29b-41d4-a716-446655440000',
+  '550e8400-e29b-41d4-a716-446655440000',
+  'gmail',
+  'demo@mastermail.com',
+  'Demo User',
+  'demo_access_token',
+  'demo_refresh_token',
+  '{
+    "sync_enabled": true,
+    "sync_frequency": 300
+  }'
+) ON CONFLICT (user_id, provider, email) DO NOTHING;
+
+-- Now insert 12 diverse demo emails
+INSERT INTO email_metadata (
+  id, account_id, message_id, thread_id, subject, sender_email, sender_name, 
+  recipient_emails, labels, is_read, is_starred, is_archived, is_snoozed, 
+  received_at, created_at
 ) VALUES 
--- Welcome email
+-- 1. Work Email - Project Update
 (
-  gen_random_uuid(),
-  '550e8400-e29b-41d4-a716-446655440000',
-  'welcome-001',
-  'thread-welcome-001',
-  'Welcome to HiSpeed Mail! 🚀',
-  'HiSpeed Team',
-  'team@hispeedmail.com',
-  ARRAY['demo@hispeedmail.com'],
-  'Welcome to HiSpeed Mail! We''re excited to have you on board. Get ready for lightning-fast email management.',
-  '<div><h2>Welcome to HiSpeed Mail! 🚀</h2><p>We''re excited to have you on board. Get ready for lightning-fast email management with features like:</p><ul><li>⚡ Instant search</li><li>🎯 Smart filtering</li><li>📱 Mobile-first design</li><li>🔒 Secure encryption</li></ul><p>Happy emailing!</p><p>The HiSpeed Team</p></div>',
-  now() - interval '1 hour',
+  '770e8400-e29b-41d4-a716-446655440001',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_001',
+  'thread_001',
+  'Q4 Project Update - Mobile App Launch',
+  'sarah.chen@techcorp.com',
+  'Sarah Chen',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['work', 'important'],
   false,
   true,
-  true,
-  ARRAY['inbox', 'important'],
   false,
-  now(),
-  now()
+  false,
+  NOW() - INTERVAL '2 hours',
+  NOW() - INTERVAL '2 hours'
 ),
--- Project update
+
+-- 2. Promotional Email - Black Friday Sale
 (
-  gen_random_uuid(),
-  '550e8400-e29b-41d4-a716-446655440000',
-  'project-update-001',
-  'thread-project-001',
-  'Q4 Project Updates - Action Required',
-  'Sarah Johnson',
-  'sarah.johnson@company.com',
-  ARRAY['demo@hispeedmail.com', 'team@company.com'],
-  'Hi team, Here are the Q4 project updates. Please review the attached documents and provide feedback by Friday.',
-  '<div><p>Hi team,</p><p>Here are the Q4 project updates:</p><ul><li>✅ Phase 1 completed ahead of schedule</li><li>🔄 Phase 2 in progress (85% complete)</li><li>📅 Phase 3 starting next week</li></ul><p><strong>Action Required:</strong> Please review the attached documents and provide feedback by Friday.</p><p>Best regards,<br>Sarah</p></div>',
-  now() - interval '2 hours',
+  '770e8400-e29b-41d4-a716-446655440002',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_002',
+  'thread_002',
+  '🔥 Black Friday: 70% OFF Everything! Limited Time',
+  'deals@shopmart.com',
+  'ShopMart Deals',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['promotions'],
+  true,
   false,
   false,
-  true,
-  ARRAY['inbox', 'work'],
-  true,
-  now(),
-  now()
+  false,
+  NOW() - INTERVAL '4 hours',
+  NOW() - INTERVAL '4 hours'
 ),
--- Newsletter
+
+-- 3. OTP Email - Security Code
 (
-  gen_random_uuid(),
-  '550e8400-e29b-41d4-a716-446655440000',
-  'newsletter-001',
-  'thread-newsletter-001',
-  'Weekly Tech Digest - AI Breakthroughs & More',
-  'Tech Weekly',
+  '770e8400-e29b-41d4-a716-446655440003',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_003',
+  'thread_003',
+  'Your verification code: 847392',
+  'noreply@securebank.com',
+  'SecureBank Security',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['important', 'security'],
+  false,
+  false,
+  false,
+  false,
+  NOW() - INTERVAL '15 minutes',
+  NOW() - INTERVAL '15 minutes'
+),
+
+-- 4. Social Email - Twitter Notification
+(
+  '770e8400-e29b-41d4-a716-446655440004',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_004',
+  'thread_004',
+  'You have 3 new mentions on Twitter',
+  'notifications@twitter.com',
+  'Twitter',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['social'],
+  true,
+  false,
+  false,
+  false,
+  NOW() - INTERVAL '1 hour',
+  NOW() - INTERVAL '1 hour'
+),
+
+-- 5. Work Email - Meeting Invitation
+(
+  '770e8400-e29b-41d4-a716-446655440005',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_005',
+  'thread_005',
+  'Meeting: Product Strategy Review - Tomorrow 2PM',
+  'mike.johnson@techcorp.com',
+  'Mike Johnson',
+  ARRAY['demo@mastermail.com', 'team@techcorp.com'],
+  ARRAY['work', 'meeting'],
+  false,
+  false,
+  false,
+  false,
+  NOW() - INTERVAL '30 minutes',
+  NOW() - INTERVAL '30 minutes'
+),
+
+-- 6. Newsletter - Tech News
+(
+  '770e8400-e29b-41d4-a716-446655440006',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_006',
+  'thread_006',
+  'Weekly Tech Digest: AI Breakthroughs & Startup News',
   'newsletter@techweekly.com',
-  ARRAY['demo@hispeedmail.com'],
-  'This week in tech: Major AI breakthroughs, new framework releases, and industry insights you can''t miss.',
-  '<div><h2>Weekly Tech Digest</h2><p>This week in tech:</p><ul><li>🤖 Major AI breakthroughs in language models</li><li>⚛️ React 19 beta released</li><li>🚀 New deployment tools launched</li><li>💡 Industry insights from top leaders</li></ul><p><a href="#" style="color: #3b82f6;">Read full newsletter →</a></p></div>',
-  now() - interval '3 hours',
+  'Tech Weekly',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['newsletters'],
   true,
   false,
   false,
-  ARRAY['inbox', 'newsletters'],
   false,
-  now(),
-  now()
+  NOW() - INTERVAL '6 hours',
+  NOW() - INTERVAL '6 hours'
 ),
--- Meeting invite
+
+-- 7. Personal Email - Family Update
 (
-  gen_random_uuid(),
-  '550e8400-e29b-41d4-a716-446655440000',
-  'meeting-001',
-  'thread-meeting-001',
-  'Team Standup - Tomorrow 10 AM',
-  'Alex Chen',
-  'alex.chen@company.com',
-  ARRAY['demo@hispeedmail.com', 'team@company.com'],
-  'Quick reminder about our team standup tomorrow at 10 AM. We''ll be discussing sprint progress and blockers.',
-  '<div><p>Hi everyone,</p><p>Quick reminder about our team standup tomorrow at 10 AM.</p><p><strong>Agenda:</strong></p><ul><li>Sprint progress review</li><li>Current blockers discussion</li><li>Next week planning</li></ul><p>Meeting link: <a href="#" style="color: #3b82f6;">Join Zoom Meeting</a></p><p>See you there!<br>Alex</p></div>',
-  now() - interval '4 hours',
+  '770e8400-e29b-41d4-a716-446655440007',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_007',
+  'thread_007',
+  'Thanksgiving Plans - Can you make it?',
+  'mom@family.com',
+  'Mom',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['personal', 'family'],
   false,
-  false,
-  false,
-  ARRAY['inbox', 'meetings'],
-  false,
-  now(),
-  now()
-),
--- Security alert
-(
-  gen_random_uuid(),
-  '550e8400-e29b-41d4-a716-446655440000',
-  'security-001',
-  'thread-security-001',
-  'Security Alert: New Login Detected',
-  'Security Team',
-  'security@hispeedmail.com',
-  ARRAY['demo@hispeedmail.com'],
-  'We detected a new login to your account from a new device. If this was you, no action needed.',
-  '<div><h3>🔒 Security Alert</h3><p>We detected a new login to your account:</p><ul><li><strong>Device:</strong> Chrome on macOS</li><li><strong>Location:</strong> San Francisco, CA</li><li><strong>Time:</strong> Today at 2:30 PM</li></ul><p>If this was you, no action is needed. If not, please <a href="#" style="color: #ef4444;">secure your account immediately</a>.</p></div>',
-  now() - interval '5 hours',
   true,
   false,
-  true,
-  ARRAY['inbox', 'security'],
   false,
-  now(),
-  now()
+  NOW() - INTERVAL '1 day',
+  NOW() - INTERVAL '1 day'
 ),
--- Social notification
+
+-- 8. Work Email - Code Review Request
 (
-  gen_random_uuid(),
-  '550e8400-e29b-41d4-a716-446655440000',
-  'social-001',
-  'thread-social-001',
-  'You have 3 new connections on LinkedIn',
-  'LinkedIn',
+  '770e8400-e29b-41d4-a716-446655440008',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_008',
+  'thread_008',
+  'PR Review: Feature/user-authentication',
+  'alex.kim@techcorp.com',
+  'Alex Kim',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['work', 'code-review'],
+  false,
+  false,
+  false,
+  false,
+  NOW() - INTERVAL '3 hours',
+  NOW() - INTERVAL '3 hours'
+),
+
+-- 9. Promotional Email - Subscription Renewal
+(
+  '770e8400-e29b-41d4-a716-446655440009',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_009',
+  'thread_009',
+  'Your Premium Subscription expires in 7 days',
+  'billing@premiumservice.com',
+  'Premium Service',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['billing', 'important'],
+  true,
+  false,
+  false,
+  false,
+  NOW() - INTERVAL '2 days',
+  NOW() - INTERVAL '2 days'
+),
+
+-- 10. Social Email - LinkedIn Connection
+(
+  '770e8400-e29b-41d4-a716-446655440010',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_010',
+  'thread_010',
+  'You have 5 new connection requests on LinkedIn',
   'notifications@linkedin.com',
-  ARRAY['demo@hispeedmail.com'],
-  'Great news! You have 3 new connection requests waiting for your response.',
-  '<div><h3>New Connections Waiting</h3><p>You have <strong>3 new connection requests</strong> from:</p><ul><li>👤 Maria Rodriguez - Product Manager at TechCorp</li><li>👤 David Kim - Senior Developer at StartupXYZ</li><li>👤 Jennifer Liu - UX Designer at DesignStudio</li></ul><p><a href="#" style="background: #0077b5; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px;">View Requests</a></p></div>',
-  now() - interval '6 hours',
+  'LinkedIn',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['social', 'linkedin'],
   true,
   false,
   false,
-  ARRAY['inbox', 'social'],
   false,
-  now(),
-  now()
+  NOW() - INTERVAL '5 hours',
+  NOW() - INTERVAL '5 hours'
 ),
--- Invoice
+
+-- 11. Work Email - Bug Report
 (
-  gen_random_uuid(),
-  '550e8400-e29b-41d4-a716-446655440000',
-  'invoice-001',
-  'thread-invoice-001',
-  'Invoice #INV-2024-001 - Payment Due',
-  'Billing Department',
-  'billing@webservices.com',
-  ARRAY['demo@hispeedmail.com'],
-  'Your invoice for web hosting services is now due. Please process payment by the due date to avoid service interruption.',
-  '<div><h3>Invoice Due</h3><p><strong>Invoice #:</strong> INV-2024-001<br><strong>Amount:</strong> $99.00<br><strong>Due Date:</strong> December 15, 2024</p><p><strong>Services:</strong></p><ul><li>Web Hosting - Premium Plan</li><li>SSL Certificate</li><li>Daily Backups</li></ul><p><a href="#" style="background: #16a34a; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px;">Pay Now</a></p></div>',
-  now() - interval '1 day',
+  '770e8400-e29b-41d4-a716-446655440011',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_011',
+  'thread_011',
+  'URGENT: Critical bug in payment system',
+  'qa.team@techcorp.com',
+  'QA Team',
+  ARRAY['demo@mastermail.com', 'dev-team@techcorp.com'],
+  ARRAY['work', 'urgent', 'bug'],
   false,
   true,
-  true,
-  ARRAY['inbox', 'billing'],
-  true,
-  now(),
-  now()
+  false,
+  false,
+  NOW() - INTERVAL '45 minutes',
+  NOW() - INTERVAL '45 minutes'
 ),
--- Promotional
+
+-- 12. Personal Email - Event Invitation
 (
-  gen_random_uuid(),
-  '550e8400-e29b-41d4-a716-446655440000',
-  'promo-001',
-  'thread-promo-001',
-  '🎉 Black Friday Sale - 50% Off Everything!',
-  'TechStore',
-  'deals@techstore.com',
-  ARRAY['demo@hispeedmail.com'],
-  'Don''t miss our biggest sale of the year! 50% off all tech products for a limited time.',
-  '<div style="text-align: center;"><h2>🎉 BLACK FRIDAY MEGA SALE</h2><h3 style="color: #ef4444;">50% OFF EVERYTHING!</h3><p>Limited time offer on all tech products:</p><ul style="text-align: left;"><li>💻 Laptops & Computers</li><li>📱 Smartphones & Tablets</li><li>🎧 Audio & Accessories</li><li>⌚ Smart Watches</li></ul><p><a href="#" style="background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">SHOP NOW</a></p><p style="font-size: 12px; color: #666;">Sale ends December 1st. Terms apply.</p></div>',
-  now() - interval '1 day',
+  '770e8400-e29b-41d4-a716-446655440012',
+  '660e8400-e29b-41d4-a716-446655440000',
+  'msg_012',
+  'thread_012',
+  'You\'re invited: Annual Company Holiday Party',
+  'events@techcorp.com',
+  'HR Events Team',
+  ARRAY['demo@mastermail.com'],
+  ARRAY['personal', 'event'],
   true,
   false,
   false,
-  ARRAY['inbox', 'promotions'],
   false,
-  now(),
-  now()
+  NOW() - INTERVAL '3 days',
+  NOW() - INTERVAL '3 days'
 );
+
+-- Update some emails to have different read states and flags for better testing
+UPDATE email_metadata SET is_read = false WHERE message_id IN ('msg_001', 'msg_003', 'msg_005', 'msg_007', 'msg_008', 'msg_011');
+UPDATE email_metadata SET is_starred = true WHERE message_id IN ('msg_001', 'msg_007', 'msg_011');
+UPDATE email_metadata SET is_archived = true WHERE message_id = 'msg_012';
+UPDATE email_metadata SET is_snoozed = true, snooze_until = NOW() + INTERVAL '2 hours' WHERE message_id = 'msg_005';

@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Star, Paperclip, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
+import { useEmailActions } from "@/hooks/use-email-actions"
 
 interface EmailListProps {
   messages: any[]
@@ -21,6 +22,7 @@ interface EmailListProps {
 
 export function EmailList({ messages, selectedMessage, selectedIndex, onMessageSelect, isLoading, isFetchingMore, hasMore }: EmailListProps) {
   const [selectedMessages, setSelectedMessages] = useState<Set<string>>(new Set())
+  const { starMessage } = useEmailActions()
 
   useEffect(() => {
     if (messages && messages.length > 0 && selectedIndex >= 0 && selectedIndex < messages.length) {
@@ -108,9 +110,14 @@ export function EmailList({ messages, selectedMessage, selectedIndex, onMessageS
                 variant="ghost"
                 size="sm"
                 className="p-0 h-auto hover:bg-transparent"
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.stopPropagation()
-                  // Toggle star
+                  try {
+                    await starMessage(message.id, !message.is_starred)
+                    // The parent component should refresh the messages to show updated state
+                  } catch (error) {
+                    // Error is handled in the hook
+                  }
                 }}
               >
                 <Star className={cn("w-4 h-4", message.is_starred ? "fill-yellow-400 text-yellow-400" : "")} />

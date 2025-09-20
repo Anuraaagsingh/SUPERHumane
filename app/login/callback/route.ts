@@ -7,8 +7,15 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
   const next = searchParams.get("next") ?? "/inbox"
+  const error = searchParams.get("error")
 
-  console.log("[v0] OAuth callback - code:", !!code, "next:", next)
+  console.log("[v0] OAuth callback - code:", !!code, "next:", next, "error:", error)
+
+  // Handle OAuth errors
+  if (error) {
+    console.log("[v0] OAuth error:", error)
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error)}`)
+  }
 
   if (code) {
     const cookieStore = cookies()
@@ -28,31 +35,41 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    try {
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-    console.log("[v0] Auth exchange error:", error)
+      console.log("[v0] Auth exchange result - user:", !!data?.user, "error:", exchangeError)
 
-    if (!error) {
-      // Set up user profile and email account
-      try {
-        const setupResponse = await fetch(`${origin}/api/auth/setup-profile`, {
-          method: "POST",
-          headers: {
-            Cookie: cookieStore.toString(),
-          },
-        })
-
-        console.log("[v0] Profile setup response:", setupResponse.status)
-      } catch (setupError) {
-        console.error("Profile setup error:", setupError)
-        // Continue anyway, profile can be set up later
+      if (exchangeError) {
+        console.error("[v0] Auth exchange error:", exchangeError)
+        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(exchangeError.message)}`)
       }
 
-      console.log("[v0] Redirecting to:", `${origin}${next}`)
-      return NextResponse.redirect(`${origin}${next}`)
+      if (data?.user) {
+        // Set up user profile and email account
+        try {
+          const setupResponse = await fetch(`${origin}/api/auth/setup-profile`, {
+            method: "POST",
+            headers: {
+              Cookie: cookieStore.toString(),
+            },
+          })
+
+          console.log("[v0] Profile setup response:", setupResponse.status)
+        } catch (setupError) {
+          console.error("Profile setup error:", setupError)
+          // Continue anyway, profile can be set up later
+        }
+
+        console.log("[v0] Redirecting to:", `${origin}${next}`)
+        return NextResponse.redirect(`${origin}${next}`)
+      }
+    } catch (error) {
+      console.error("[v0] Auth exchange exception:", error)
+      return NextResponse.redirect(`${origin}/login?error=Authentication failed`)
     }
   }
 
-  console.log("[v0] Auth failed, redirecting to login")
-  return NextResponse.redirect(`${origin}/login?error=Could not authenticate user`)
+  console.log("[v0] No code provided, redirecting to login")
+  return NextResponse.redirect(`${origin}/login?error=No authorization code provided`)
 }

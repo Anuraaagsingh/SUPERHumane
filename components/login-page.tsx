@@ -5,7 +5,7 @@ import { AuthForm } from "@/components/auth-form"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
-export function LoginPage() {
+export function LoginPage({ error }: { error?: string }) {
   const { user, loading } = useAuth()
   const router = useRouter()
 
@@ -37,6 +37,11 @@ export function LoginPage() {
           <h1 className="text-3xl font-bold text-white mb-2">MasterMail</h1>
           <p className="text-slate-300">Built for speed</p>
         </div>
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-md">
+            <p className="text-red-300 text-sm">{decodeURIComponent(error)}</p>
+          </div>
+        )}
         <AuthForm />
       </div>
     </div>

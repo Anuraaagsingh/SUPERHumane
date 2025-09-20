@@ -27,6 +27,7 @@ export function InboxLayout({ user }: InboxLayoutProps) {
   const [selectedMessage, setSelectedMessage] = useState<any>(null)
   const [selectedMessageIndex, setSelectedMessageIndex] = useState(0)
   const [isComposerOpen, setIsComposerOpen] = useState(false)
+  const [composerData, setComposerData] = useState<any>(null)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -282,7 +283,18 @@ export function InboxLayout({ user }: InboxLayoutProps) {
         {/* Message view */}
         <div className="flex-1">
           {selectedMessage ? (
-            <MessageView message={selectedMessage} account={currentAccount} />
+            <MessageView 
+              message={selectedMessage} 
+              account={currentAccount}
+              onReply={(replyData) => {
+                setComposerData(replyData)
+                setIsComposerOpen(true)
+              }}
+              onForward={(forwardData) => {
+                setComposerData(forwardData)
+                setIsComposerOpen(true)
+              }}
+            />
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground">
               <div className="text-center">
@@ -311,9 +323,13 @@ export function InboxLayout({ user }: InboxLayoutProps) {
       {/* Composer modal */}
       {isComposerOpen && (
         <Composer
-          account={currentAccount}
-          onClose={() => setIsComposerOpen(false)}
-          replyTo={selectedMessage?.id === "reply" ? selectedMessage : undefined}
+          isOpen={isComposerOpen}
+          onClose={() => {
+            setIsComposerOpen(false)
+            setComposerData(null)
+          }}
+          initialData={composerData}
+          mode={composerData?.mode || "compose"}
         />
       )}
 

@@ -75,8 +75,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url))
     }
 
-    // Redirect authenticated users away from login pages
-    if (isAuthRoute && user && !error) {
+    // Only redirect authenticated users away from login if they're not in the middle of OAuth flow
+    if (isAuthRoute && user && !error && !request.nextUrl.pathname.includes("/callback")) {
       console.log("[v0] Middleware - redirecting to inbox (user exists)")
       return NextResponse.redirect(new URL("/inbox", request.url))
     }

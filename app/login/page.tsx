@@ -1,5 +1,9 @@
 import { LoginPage } from "@/components/login-page"
 
-export default function AuthPage() {
-  return <LoginPage />
+export default function AuthPage({
+  searchParams,
+}: {
+  searchParams: { error?: string }
+}) {
+  return <LoginPage error={searchParams.error} />
 }
