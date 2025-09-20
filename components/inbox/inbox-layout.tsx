@@ -43,7 +43,9 @@ export function InboxLayout({ user }: InboxLayoutProps) {
   const { data: accounts } = useQuery({
     queryKey: ["email-accounts", user.id],
     queryFn: async () => {
-      const { data } = await supabase.from("email_accounts").select("*").eq("user_id", user.id).eq("is_active", true)
+      console.log("[DEBUG] Fetching accounts for user:", user.id)
+      const { data, error } = await supabase.from("email_accounts").select("*").eq("user_id", user.id).eq("is_active", true)
+      console.log("[DEBUG] Accounts data:", data, "Error:", error)
       return data || []
     },
   })
@@ -63,6 +65,10 @@ export function InboxLayout({ user }: InboxLayoutProps) {
     hasNextPage, 
     isFetchingNextPage 
   } = useInfiniteMessages(currentAccount?.id, searchQuery || undefined)
+  
+  console.log("[DEBUG] Current account:", currentAccount)
+  console.log("[DEBUG] Messages loading:", isLoadingMessages)
+  console.log("[DEBUG] Infinite data:", infiniteData)
   
   const messages = infiniteData?.pages.flatMap(page => page.messages) || []
   
@@ -265,6 +271,7 @@ export function InboxLayout({ user }: InboxLayoutProps) {
           accounts={accounts || []}
           currentAccount={currentAccount}
           onAccountChange={setCurrentAccount}
+          onSettingsClick={() => setIsSettingsOpen(true)}
         />
 
         {/* Email list */}

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { getSupabaseConfig } from "@/lib/supabase"
 
 export async function POST() {
+  console.log("[DEBUG] Setup profile API called")
   const cookieStore = cookies()
   const { url, anonKey } = getSupabaseConfig()
   
@@ -19,6 +20,8 @@ export async function POST() {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser()
+
+  console.log("[DEBUG] Setup profile - User:", user?.email, "Auth error:", authError)
 
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

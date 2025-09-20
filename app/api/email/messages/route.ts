@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
     error: authError,
   } = await supabase.auth.getUser()
 
+  console.log("[DEBUG] Messages API - User:", user?.email, "Auth error:", authError)
+
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -31,6 +33,8 @@ export async function GET(request: NextRequest) {
     const limit = Number.parseInt(searchParams.get("limit") || "50")
     const offset = Number.parseInt(searchParams.get("offset") || "0")
     const query = searchParams.get("query")
+
+    console.log("[DEBUG] Messages API - Account ID:", accountId, "Limit:", limit, "Offset:", offset)
 
     if (!accountId) {
       return NextResponse.json({ error: "Account ID required" }, { status: 400 })

@@ -24,6 +24,7 @@ interface SidebarProps {
   accounts: any[]
   currentAccount: any
   onAccountChange: (account: any) => void
+  onSettingsClick?: () => void
 }
 
 const folders = [
@@ -46,7 +47,7 @@ const splits = [
   { id: "work", label: "Work", icon: Briefcase },
 ]
 
-export function Sidebar({ selectedFolder, onFolderSelect, accounts, currentAccount, onAccountChange }: SidebarProps) {
+export function Sidebar({ selectedFolder, onFolderSelect, accounts, currentAccount, onAccountChange, onSettingsClick }: SidebarProps) {
   return (
     <div className="w-64 border-r border-border bg-muted/30 flex flex-col">
       {/* Account selector */}
@@ -129,7 +130,11 @@ export function Sidebar({ selectedFolder, onFolderSelect, accounts, currentAccou
 
       {/* Settings */}
       <div className="p-4 border-t border-border">
-        <Button variant="ghost" className="w-full justify-start" onClick={() => window.open("/settings", "_blank")}>
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start hover:bg-background/50 backdrop-blur-sm transition-all duration-200" 
+          onClick={onSettingsClick}
+        >
           <Settings className="w-4 h-4 mr-3" />
           Settings
         </Button>

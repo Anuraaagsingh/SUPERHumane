@@ -29,6 +29,19 @@ export function useAuth() {
         setLoading(false)
 
         if (event === 'SIGNED_IN' && session?.user) {
+          // Call setup profile for non-OAuth logins
+          try {
+            const response = await fetch('/api/auth/setup-profile', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+            console.log('[DEBUG] Setup profile response:', response.status)
+          } catch (error) {
+            console.error('[DEBUG] Setup profile error:', error)
+          }
+          
           // Redirect to inbox after successful sign in
           router.push('/inbox')
         } else if (event === 'SIGNED_OUT') {
