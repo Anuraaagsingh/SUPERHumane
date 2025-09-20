@@ -29,19 +29,24 @@ export function AuthForm() {
     try {
       // Use our custom Gmail OAuth flow
       const response = await fetch('/api/auth/gmail-auth')
-      const { authUrl } = await response.json()
+      const data = await response.json()
       
-      if (!authUrl) {
-        throw new Error('Failed to get Gmail auth URL')
+      if (!response.ok) {
+        throw new Error(data.details || data.error || 'Failed to get Gmail auth URL')
       }
       
+      if (!data.authUrl) {
+        throw new Error('No auth URL returned from server')
+      }
+      
+      console.log("[v0] Redirecting to Gmail OAuth:", data.authUrl)
       // Redirect to Gmail OAuth
-      window.location.href = authUrl
+      window.location.href = data.authUrl
     } catch (error: any) {
       console.error("[v0] Google auth error:", error)
       toast({
-        title: "Authentication failed",
-        description: error.message || "Failed to authenticate with Google",
+        title: "Gmail OAuth Configuration Error",
+        description: error.message || "Failed to authenticate with Google. Please check your Gmail OAuth configuration.",
         variant: "destructive",
       })
       setIsLoading(null)

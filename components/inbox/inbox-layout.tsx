@@ -175,6 +175,40 @@ export function InboxLayout({ user }: InboxLayoutProps) {
     }
   }
 
+  const handleEnvCheck = async () => {
+    try {
+      const response = await fetch('/api/health/env')
+      const data = await response.json()
+      logger.info('Environment check', data)
+      
+      if (data.status === 'healthy') {
+        toast({
+          title: "Environment Healthy",
+          description: "All required variables are set",
+        })
+      } else if (data.status === 'warning') {
+        toast({
+          title: "Environment Warning",
+          description: `${data.warnings.length} warnings. Check console for details.`,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Environment Error",
+          description: `${data.errors.length} errors. Check console for details.`,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      logger.error('Environment check error', error)
+      toast({
+        title: "Environment Check Failed",
+        description: "Could not check environment variables",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleAction = (action: string) => {
     if (!selectedMessage) {
       toast({
@@ -336,6 +370,9 @@ export function InboxLayout({ user }: InboxLayoutProps) {
           </Button>
           <Button variant="ghost" size="sm" onClick={handleDatabaseHealth} title="Check database">
             🏥
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleEnvCheck} title="Check environment">
+            ⚙️
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setIsComposerOpen(true)}>
             <Edit className="w-4 h-4" />

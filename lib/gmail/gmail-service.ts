@@ -5,10 +5,27 @@ export class GmailService {
   private oauth2Client: OAuth2Client
 
   constructor() {
+    const clientId = process.env.GOOGLE_CLIENT_ID
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET
+    const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/auth/gmail-callback`
+
+    if (!clientId) {
+      throw new Error('GOOGLE_CLIENT_ID environment variable is required')
+    }
+    if (!clientSecret) {
+      throw new Error('GOOGLE_CLIENT_SECRET environment variable is required')
+    }
+
+    console.log('[Gmail Service] Initializing with:', {
+      clientId: clientId ? `${clientId.substring(0, 10)}...` : 'MISSING',
+      clientSecret: clientSecret ? 'SET' : 'MISSING',
+      redirectUri
+    })
+
     this.oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.NEXT_PUBLIC_SUPABASE_REDIRECT_URL || 'http://localhost:3000/login/callback'
+      clientId,
+      clientSecret,
+      redirectUri
     )
   }
 
