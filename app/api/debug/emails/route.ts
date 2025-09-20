@@ -34,6 +34,14 @@ export async function GET(request: NextRequest) {
     console.log("[DEBUG] User accounts:", accounts)
 
     if (accountsError) {
+      console.error("[DEBUG] Accounts error:", accountsError)
+      if (accountsError.code === 'PGRST205') {
+        return NextResponse.json({ 
+          error: "Database tables not found", 
+          details: "Please run the database setup script in Supabase SQL Editor",
+          code: "TABLES_MISSING"
+        }, { status: 500 })
+      }
       return NextResponse.json({ error: "Failed to fetch accounts", details: accountsError }, { status: 500 })
     }
 

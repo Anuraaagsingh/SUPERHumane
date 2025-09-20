@@ -57,6 +57,13 @@ export async function POST() {
 
       if (profileError) {
         console.error("Profile creation error:", profileError)
+        if (profileError.code === 'PGRST205') {
+          return NextResponse.json({ 
+            error: "Database tables not found", 
+            details: "Please run the database setup script in Supabase SQL Editor",
+            code: "TABLES_MISSING"
+          }, { status: 500 })
+        }
         return NextResponse.json({ error: "Failed to create profile" }, { status: 500 })
       }
     }
