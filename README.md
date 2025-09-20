@@ -129,8 +129,20 @@ Visit [http://localhost:3000](http://localhost:3000) to see the app.
 ### Vercel (Recommended)
 
 1. Connect your GitHub repository to Vercel
-2. Add environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+2. Add environment variables as **Secrets** in Vercel dashboard:
+   - Go to your project settings → Environment Variables
+   - Add these secrets:
+     - `next_public_supabase_url` → Your Supabase URL
+     - `next_public_supabase_anon_key` → Your Supabase anon key
+     - `supabase_service_role_key` → Your Supabase service role key
+     - `google_client_id` → Your Google OAuth client ID
+     - `google_client_secret` → Your Google OAuth client secret
+     - `microsoft_client_id` → Your Microsoft OAuth client ID
+     - `microsoft_client_secret` → Your Microsoft OAuth client secret
+     - `redis_url` → Your Redis URL
+     - `database_url` → Your database URL
+3. The `vercel.json` file will automatically map these secrets to the correct environment variables
+4. Deploy automatically on push to main branch
 
 ### Manual Deployment
 
