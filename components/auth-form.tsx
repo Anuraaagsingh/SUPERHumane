@@ -24,39 +24,27 @@ export function AuthForm() {
   }
 
   const handleGoogleAuth = async () => {
-    console.log("[v0] Starting Google OAuth")
+    console.log("[Supabase] Starting Google OAuth")
     setIsLoading("google")
     try {
-      // Use our simple Gmail OAuth flow
-      const response = await fetch('/api/auth/simple-gmail')
-      const data = await response.json()
-      
-      if (!response.ok) {
-        if (data.setupRequired) {
-          toast({
-            title: "Gmail OAuth Setup Required",
-            description: "Please configure your Google OAuth credentials. See setup-oauth.md for instructions.",
-            variant: "destructive",
-          })
-        } else {
-          throw new Error(data.details || data.error || 'Failed to get Gmail auth URL')
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/login/callback`,
+          scopes: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify'
         }
-        setIsLoading(null)
-        return
+      })
+      
+      if (error) {
+        throw error
       }
       
-      if (!data.authUrl) {
-        throw new Error('No auth URL returned from server')
-      }
-      
-      console.log("[v0] Redirecting to Gmail OAuth:", data.authUrl)
-      // Redirect to Gmail OAuth
-      window.location.href = data.authUrl
+      console.log("[Supabase] Google OAuth initiated successfully")
     } catch (error: any) {
-      console.error("[v0] Google auth error:", error)
+      console.error("[Supabase] Google auth error:", error)
       toast({
-        title: "Gmail OAuth Configuration Error",
-        description: error.message || "Failed to authenticate with Google. Please check your Gmail OAuth configuration.",
+        title: "Google Authentication Error",
+        description: error.message || "Failed to authenticate with Google. Please try again.",
         variant: "destructive",
       })
       setIsLoading(null)

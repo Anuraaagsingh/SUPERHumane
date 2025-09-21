@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
-import { EmailSyncService } from "@/lib/email/sync-service"
+import { SupabaseGmailService } from "@/lib/gmail/supabase-gmail-service"
 import { getSupabaseConfig } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 })
     }
 
-    const syncService = new EmailSyncService()
-    await syncService.syncAccount(accountId)
+    const gmailService = new SupabaseGmailService()
+    await gmailService.getMessages(user.id)
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

@@ -17,7 +17,8 @@ export function useEmailSync() {
       })
 
       if (!response.ok) {
-        throw new Error("Sync failed")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Sync failed")
       }
 
       return response.json()
