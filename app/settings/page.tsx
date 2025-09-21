@@ -1,16 +1,27 @@
-import { getCurrentUser, getUserProfile } from "@/lib/auth"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { SettingsForm } from "@/components/settings-form"
 
 export const dynamic = 'force-dynamic'
 
 export default async function SettingsPage() {
-  const user = await getCurrentUser()
-  const profile = await getUserProfile()
+  const supabase = createServerSupabaseClient()
+  
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect("/auth")
+  if (authError || !user) {
+    redirect("/login")
   }
+
+  // Get user profile
+  const { data: profile } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", user.id)
+    .single()
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">

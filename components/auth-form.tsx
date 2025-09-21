@@ -7,17 +7,12 @@ import { Mail, Chrome, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
-import { ErrorDialog } from "@/components/ui/error-dialog"
 
 export function AuthForm() {
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const [showEmailAuth, setShowEmailAuth] = useState(false) // Added email auth state
   const [email, setEmail] = useState("") // Added email state
   const [password, setPassword] = useState("") // Added password state
-  const [errorDialog, setErrorDialog] = useState<{
-    isOpen: boolean
-    error: any
-  }>({ isOpen: false, error: null })
   const { toast } = useToast()
   const { user } = useAuth()
 
@@ -47,29 +42,9 @@ export function AuthForm() {
       
       if (error) {
         console.error("[Supabase] OAuth error details:", error)
-        
-        // Show detailed error dialog
-        setErrorDialog({
-          isOpen: true,
-          error: {
-            error: error.message || "Google OAuth failed",
-            details: error.description || "Failed to initiate Google authentication",
-            debug: {
-              provider: 'google',
-              origin: window.location.origin,
-              supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-              hasSupabaseClient: !!supabase,
-              timestamp: new Date().toISOString()
-            },
-            timestamp: new Date().toISOString(),
-            url: window.location.href,
-            method: 'OAuth'
-          }
-        })
-        
         toast({
           title: "Google Authentication Error",
-          description: "Click 'View Details' to see what went wrong.",
+          description: error.message || "Failed to authenticate with Google",
           variant: "destructive",
         })
         setIsLoading(null)
@@ -79,30 +54,9 @@ export function AuthForm() {
       console.log("[Supabase] Google OAuth initiated successfully")
     } catch (error: any) {
       console.error("[Supabase] Google auth error:", error)
-      
-      // Show detailed error dialog
-      setErrorDialog({
-        isOpen: true,
-        error: {
-          error: error.message || "Google OAuth failed",
-          details: "An unexpected error occurred during Google authentication",
-          debug: {
-            provider: 'google',
-            origin: window.location.origin,
-            supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-            hasSupabaseClient: !!supabase,
-            errorType: error.constructor.name,
-            timestamp: new Date().toISOString()
-          },
-          timestamp: new Date().toISOString(),
-          url: window.location.href,
-          method: 'OAuth'
-        }
-      })
-      
       toast({
         title: "Google Authentication Error",
-        description: "Click 'View Details' to see what went wrong.",
+        description: error.message || "An unexpected error occurred during Google authentication",
         variant: "destructive",
       })
       setIsLoading(null)
@@ -363,19 +317,6 @@ export function AuthForm() {
       </CardContent>
     </Card>
 
-    {/* Error Dialog */}
-    <ErrorDialog
-      isOpen={errorDialog.isOpen}
-      onClose={() => setErrorDialog({ isOpen: false, error: null })}
-      error={errorDialog.error}
-      onRetry={() => {
-        setErrorDialog({ isOpen: false, error: null })
-        // Retry the last attempted action
-        if (isLoading === "google") {
-          handleGoogleAuth()
-        }
-      }}
-    />
   </>
   )
 }

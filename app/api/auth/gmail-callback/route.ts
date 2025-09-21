@@ -31,20 +31,19 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code)
       
       if (error) {
-        console.error("Auth callback error:", error)
-        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`)
+        console.error("Gmail callback error:", error)
+        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("Gmail authentication failed: " + error.message)}`)
       }
 
       if (data?.user) {
-        console.log("User authenticated successfully:", data.user.email)
+        console.log("Gmail user authenticated successfully:", data.user.email)
         return NextResponse.redirect(`${origin}${next}`)
       }
     } catch (error: any) {
-      console.error("Auth callback exception:", error)
-      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("Authentication failed")}`)
+      console.error("Gmail callback exception:", error)
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("Gmail authentication failed")}`)
     }
   }
 
-  // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("No authorization code provided")}`)
+  return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("No Gmail authorization code provided")}`)
 }

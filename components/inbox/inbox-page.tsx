@@ -1,7 +1,7 @@
 "use client"
 
 import { useAuth } from "@/hooks/use-auth"
-import { MobileFirstInbox } from "@/components/inbox/mobile-first-inbox"
+import { SimpleInbox } from "@/components/inbox/simple-inbox"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
@@ -30,5 +30,5 @@ export function InboxPage() {
     return null // Will redirect via useEffect
   }
 
-  return <MobileFirstInbox user={user} />
+  return <SimpleInbox user={user} />
 }
