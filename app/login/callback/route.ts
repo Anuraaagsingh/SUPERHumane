@@ -3,7 +3,7 @@ import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
 
 export const dynamic = 'force-dynamic'
-export const runtime = 'edge'
+// Remove edge runtime to allow Node.js modules to work
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)

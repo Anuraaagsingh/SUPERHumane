@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 import { getSupabaseConfig } from "@/lib/supabase"
 
 export const dynamic = 'force-dynamic'
-export const runtime = 'edge'
+// Remove edge runtime to allow Node.js modules to work
 
 export async function POST() {
   console.log("[SETUP] Setup profile API called")

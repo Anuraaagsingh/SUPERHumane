@@ -14,6 +14,7 @@
 - [x] Implement token refresh mechanism
 - [x] Verify Supabase table structure and permissions
 - [x] Ensure environment variables are correctly set
+- [x] Remove Edge runtime to fix Node.js module compatibility issues
 
 ## UI/UX Issues
 - [x] Add better error messages during authentication

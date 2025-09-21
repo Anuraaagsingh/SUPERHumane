@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 import { google } from "googleapis"
 
 export const dynamic = 'force-dynamic'
-export const runtime = 'edge'
+// Remove edge runtime to allow Node.js modules to work
 
 export async function GET() {
   console.log("[GMAIL] Fetching messages")
