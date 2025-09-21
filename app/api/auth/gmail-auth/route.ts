@@ -3,6 +3,14 @@ import { GmailService } from '@/lib/gmail/gmail-service'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[Gmail Auth] Environment check:', {
+      nodeEnv: process.env.NODE_ENV,
+      vercel: !!process.env.VERCEL,
+      siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+      hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+      hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET
+    })
+
     // Check if required environment variables are set
     if (!process.env.GOOGLE_CLIENT_ID) {
       console.error('[Gmail Auth] Missing GOOGLE_CLIENT_ID environment variable')
@@ -31,7 +39,11 @@ export async function GET(request: NextRequest) {
     const gmailService = new GmailService()
     const authUrl = await gmailService.getAuthUrl()
     
-    console.log('[Gmail Auth] Generated auth URL successfully')
+    console.log('[Gmail Auth] Generated auth URL successfully:', {
+      authUrl: authUrl.substring(0, 100) + '...',
+      redirectUri: authUrl.includes('redirect_uri=') ? 
+        decodeURIComponent(authUrl.split('redirect_uri=')[1]?.split('&')[0] || '') : 'Not found'
+    })
     
     return NextResponse.json({ authUrl })
   } catch (error: any) {

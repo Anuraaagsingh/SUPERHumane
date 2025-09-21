@@ -10,10 +10,18 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get('state')
   const error = searchParams.get('error')
 
-  console.log('[Gmail OAuth] Callback received:', { code: !!code, state, error })
+  console.log('[Gmail OAuth] Callback received:', { 
+    code: !!code, 
+    state, 
+    error,
+    nodeEnv: process.env.NODE_ENV,
+    vercel: !!process.env.VERCEL,
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL
+  })
 
   // Determine the correct base URL based on environment
-  const baseUrl = process.env.NODE_ENV === 'production' 
+  const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production'
+  const baseUrl = isProduction 
     ? process.env.NEXT_PUBLIC_SITE_URL || 'https://super-humane-mvt9kmllb-anurags-projects-47784640.vercel.app'
     : 'http://localhost:3000'
 

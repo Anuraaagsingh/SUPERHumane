@@ -9,7 +9,8 @@ export class GmailService {
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET
     
     // Determine the correct redirect URI based on environment
-    const baseUrl = process.env.NODE_ENV === 'production' 
+    const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production'
+    const baseUrl = isProduction 
       ? process.env.NEXT_PUBLIC_SITE_URL || 'https://super-humane-mvt9kmllb-anurags-projects-47784640.vercel.app'
       : 'http://localhost:3000'
     
@@ -26,7 +27,9 @@ export class GmailService {
       clientId: clientId ? `${clientId.substring(0, 10)}...` : 'MISSING',
       clientSecret: clientSecret ? 'SET' : 'MISSING',
       redirectUri,
-      environment: process.env.NODE_ENV
+      environment: process.env.NODE_ENV,
+      isProduction,
+      vercel: !!process.env.VERCEL
     })
 
     this.oauth2Client = new google.auth.OAuth2(
