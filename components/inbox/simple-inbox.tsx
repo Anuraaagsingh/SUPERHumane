@@ -125,10 +125,7 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
       
       switch (action) {
         case "star":
-          updates.is_starred = true
-          break
-        case "unstar":
-          updates.is_starred = false
+          updates.is_starred = !updates.is_starred
           break
         case "read":
           updates.is_read = true
@@ -354,59 +351,12 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
                 </p>
               </div>
             ) : (
-              <div className="divide-y">
-                {filteredEmails.map((email: Email) => (
-                  <div
-                    key={email.id}
-                    className={cn(
-                      "p-4 hover:bg-muted/50 cursor-pointer transition-colors",
-                      selectedMessage?.id === email.id && "bg-muted",
-                      !email.is_read && "border-l-4 border-l-primary"
-                    )}
-                    onClick={() => setSelectedMessage(email)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className={cn(
-                            "font-medium truncate",
-                            !email.is_read && "font-semibold"
-                          )}>
-                            {email.sender_name}
-                          </span>
-                          {email.has_attachments && (
-                            <Paperclip className="h-3 w-3 text-muted-foreground" />
-                          )}
-                          {email.is_starred && (
-                            <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                          )}
-                        </div>
-                        <p className={cn(
-                          "text-sm truncate mb-1",
-                          !email.is_read && "font-medium"
-                        )}>
-                          {email.subject}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {email.snippet}
-                        </p>
-                        <div className="flex items-center justify-between mt-2">
-                          <div className="flex space-x-1">
-                            {email.labels?.slice(0, 2).map((label) => (
-                              <Badge key={label} variant="secondary" className="text-xs">
-                                {label}
-                              </Badge>
-                            ))}
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(email.received_at), { addSuffix: true })}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <EmailList 
+                messages={filteredEmails}
+                selectedMessage={selectedMessage}
+                onMessageSelect={(message) => setSelectedMessage(message)}
+                onStar={(emailId, is_starred) => handleEmailAction(emailId, "star")}
+              />
             )}
           </div>
 
