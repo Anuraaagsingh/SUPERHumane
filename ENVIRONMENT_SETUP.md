@@ -40,3 +40,4 @@ NEXT_PUBLIC_SITE_URL=https://super-humane-f3drn93cj-anurags-projects-47784640.ve
 - Use Vercel's environment variables for production
 - The `GOOGLE_CLIENT_SECRET` should never be exposed to the client-side
 - All sensitive keys are handled server-side only
+
