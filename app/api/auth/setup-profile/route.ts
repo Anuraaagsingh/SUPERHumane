@@ -16,6 +16,8 @@ export async function POST() {
     },
   })
 
+  const { data: { session } } = await supabase.auth.getSession()
+
   const {
     data: { user },
     error: authError,
@@ -70,10 +72,15 @@ export async function POST() {
 
     // Create email account record
     const provider = user.app_metadata?.provider || "google"
-    const providerToken = user.session?.provider_token || user.app_metadata?.provider_token
-    const providerRefreshToken = user.session?.provider_refresh_token || user.app_metadata?.provider_refresh_token
+    const providerToken = session?.provider_token
+    const providerRefreshToken = session?.provider_refresh_token
 
     console.log("[DEBUG] Provider:", provider, "Token:", !!providerToken, "Refresh:", !!providerRefreshToken)
+
+    if (!providerToken) {
+      console.error("Provider token not found in session")
+      // Do not return an error, as this might be a simple email/password login
+    }
 
     // Always create an email account for the user
     const { data: accountData, error: accountError } = await supabase.from("email_accounts").upsert(

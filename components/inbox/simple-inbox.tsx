@@ -69,34 +69,21 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
   const { data: emails = [], isLoading, refetch } = useQuery({
     queryKey: ["emails", user.id, selectedFolder],
     queryFn: async () => {
-      const { data: accounts } = await supabase
-        .from("email_accounts")
-        .select("id")
-        .eq("user_id", user.id)
-
-      if (!accounts || accounts.length === 0) return []
-
-      let query = supabase
-        .from("email_metadata")
-        .select("*")
-        .eq("account_id", accounts[0].id)
-        .order("received_at", { ascending: false })
-
-      if (selectedFolder === "starred") {
-        query = query.eq("is_starred", true)
-      } else if (selectedFolder === "archived") {
-        query = query.eq("is_archived", true)
-      } else if (selectedFolder === "sent") {
-        query = query.contains("labels", ["sent"])
-      } else {
-        query = query.eq("is_archived", false)
+      const response = await fetch('/api/gmail/messages');
+      if (!response.ok) {
+        throw new Error('Failed to fetch emails');
       }
+      let data = await response.json();
 
-      const { data, error } = await query
-
-      if (error) {
-        console.error("Error fetching emails:", error)
-        return []
+      // The rest of the filtering logic can be done client-side for simplicity
+      if (selectedFolder === "starred") {
+        data = data.filter((e: Email) => e.is_starred);
+      } else if (selectedFolder === "archived") {
+        data = data.filter((e: Email) => e.labels?.includes("ARCHIVED")); // Example, Gmail might use a label
+      } else if (selectedFolder === "sent") {
+        data = data.filter((e: Email) => e.labels?.includes("SENT"));
+      } else { // Inbox
+        data = data.filter((e: Email) => e.labels?.includes("INBOX") && !e.labels?.includes("ARCHIVED"));
       }
 
       return data || []
