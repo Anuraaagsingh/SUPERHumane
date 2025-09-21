@@ -27,8 +27,8 @@ export function AuthForm() {
     console.log("[v0] Starting Google OAuth")
     setIsLoading("google")
     try {
-      // Use our custom Gmail OAuth flow
-      const response = await fetch('/api/auth/gmail-auth')
+      // Use our simple Gmail OAuth flow
+      const response = await fetch('/api/auth/simple-gmail')
       const data = await response.json()
       
       if (!response.ok) {

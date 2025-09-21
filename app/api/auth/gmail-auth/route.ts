@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GmailService } from '@/lib/gmail/gmail-service'
 
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
 export async function GET(request: NextRequest) {
   try {
     console.log('[Gmail Auth] Environment check:', {
@@ -56,7 +67,13 @@ export async function GET(request: NextRequest) {
         decodeURIComponent(authUrl.split('redirect_uri=')[1]?.split('&')[0] || '') : 'Not found'
     })
     
-    return NextResponse.json({ authUrl })
+    return NextResponse.json({ authUrl }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    })
   } catch (error: any) {
     console.error('[Gmail Auth] Error:', error)
     return NextResponse.json(
