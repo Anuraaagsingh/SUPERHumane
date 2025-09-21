@@ -222,6 +222,7 @@ export function AuthForm() {
   }
 
   return (
+    <>
     <Card className="bg-white/10 backdrop-blur-sm border-white/20">
       <CardHeader className="text-center">
         <CardTitle className="text-white">Connect Your Email</CardTitle>
@@ -375,5 +376,6 @@ export function AuthForm() {
         }
       }}
     />
+  </>
   )
 }

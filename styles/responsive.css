@@ -1,6 +1,8 @@
 /* Responsive Design for MasterMail */
 
-/* Mobile First Approach */
+/* Mobile First Approach - Using Tailwind's responsive utilities */
+/* Custom breakpoints for specific requirements */
+
 /* 380px - Mobile */
 @media (max-width: 379px) {
   .mobile-only {
@@ -10,31 +12,6 @@
   .tablet-only,
   .desktop-only {
     display: none;
-  }
-  
-  /* Mobile specific styles */
-  .mobile-header {
-    padding: 0.75rem 1rem;
-  }
-  
-  .mobile-compose-btn {
-    width: 3.5rem;
-    height: 3.5rem;
-    bottom: 1rem;
-    right: 1rem;
-  }
-  
-  .mobile-sidebar {
-    width: 100vw;
-    max-width: 20rem;
-  }
-  
-  .mobile-email-list {
-    padding: 0.5rem;
-  }
-  
-  .mobile-message-view {
-    padding: 1rem;
   }
 }
 
@@ -47,22 +24,6 @@
   .tablet-only,
   .desktop-only {
     display: none;
-  }
-  
-  /* Mobile landscape and larger mobile styles */
-  .mobile-header {
-    padding: 1rem;
-  }
-  
-  .mobile-compose-btn {
-    width: 4rem;
-    height: 4rem;
-    bottom: 1.5rem;
-    right: 1.5rem;
-  }
-  
-  .mobile-sidebar {
-    width: 22rem;
   }
 }
 
@@ -79,37 +40,6 @@
   .desktop-only {
     display: none;
   }
-  
-  /* Tablet specific styles */
-  .tablet-header {
-    padding: 1rem 1.5rem;
-  }
-  
-  .tablet-sidebar {
-    width: 20rem;
-  }
-  
-  .tablet-main {
-    padding: 1.5rem;
-  }
-  
-  .tablet-compose-btn {
-    width: 4rem;
-    height: 4rem;
-    bottom: 2rem;
-    right: 2rem;
-  }
-  
-  /* Tablet email list */
-  .tablet-email-list {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  
-  /* Tablet message view */
-  .tablet-message-view {
-    padding: 1.5rem;
-  }
 }
 
 /* 10180px+ - Desktop */
@@ -122,31 +52,6 @@
   .desktop-only {
     display: block;
   }
-  
-  /* Desktop specific styles */
-  .desktop-header {
-    padding: 1.5rem 2rem;
-  }
-  
-  .desktop-sidebar {
-    width: 20rem;
-  }
-  
-  .desktop-main {
-    padding: 2rem;
-  }
-  
-  /* Desktop email list - 3 column layout */
-  .desktop-email-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1rem;
-  }
-  
-  /* Desktop message view */
-  .desktop-message-view {
-    padding: 2rem;
-  }
 }
 
 /* Common responsive utilities */
@@ -156,29 +61,7 @@
   overflow-x: hidden;
 }
 
-.responsive-sidebar {
-  transition: transform 0.3s ease-in-out;
-}
-
-.responsive-sidebar.closed {
-  transform: translateX(-100%);
-}
-
-.responsive-main {
-  transition: margin-left 0.3s ease-in-out;
-}
-
-.responsive-main.sidebar-open {
-  margin-left: 0;
-}
-
-@media (min-width: 1024px) {
-  .responsive-main.sidebar-open {
-    margin-left: 20rem;
-  }
-}
-
-/* Floating compose button */
+/* Floating compose button enhancements */
 .floating-compose {
   position: fixed;
   z-index: 50;
@@ -215,111 +98,5 @@
   .email-grid {
     grid-template-columns: 1fr 1fr 1fr;
     gap: 1.5rem;
-  }
-}
-
-/* Message view responsive */
-.message-view-container {
-  height: 100vh;
-  overflow-y: auto;
-}
-
-@media (max-width: 719px) {
-  .message-view-container {
-    height: calc(100vh - 4rem); /* Account for mobile header */
-  }
-}
-
-/* Search bar responsive */
-.search-container {
-  position: relative;
-  width: 100%;
-}
-
-@media (min-width: 720px) {
-  .search-container {
-    max-width: 28rem;
-  }
-}
-
-@media (min-width: 10180px) {
-  .search-container {
-    max-width: 32rem;
-  }
-}
-
-/* Header responsive */
-.header-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-@media (max-width: 719px) {
-  .header-container {
-    padding: 0 1rem;
-  }
-}
-
-@media (min-width: 720px) {
-  .header-container {
-    padding: 0 1.5rem;
-  }
-}
-
-@media (min-width: 10180px) {
-  .header-container {
-    padding: 0 2rem;
-  }
-}
-
-/* Sidebar responsive */
-.sidebar-container {
-  height: 100vh;
-  overflow-y: auto;
-  border-right: 1px solid theme('colors.gray.200');
-}
-
-@media (max-width: 719px) {
-  .sidebar-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 40;
-    background: white;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  }
-}
-
-@media (min-width: 720px) {
-  .sidebar-container {
-    position: relative;
-    box-shadow: none;
-  }
-}
-
-/* Main content responsive */
-.main-content {
-  flex: 1;
-  min-height: 100vh;
-  overflow-y: auto;
-}
-
-@media (max-width: 719px) {
-  .main-content {
-    padding: 0;
-  }
-}
-
-@media (min-width: 720px) {
-  .main-content {
-    padding: 1rem;
-  }
-}
-
-@media (min-width: 10180px) {
-  .main-content {
-    padding: 1.5rem;
   }
 }

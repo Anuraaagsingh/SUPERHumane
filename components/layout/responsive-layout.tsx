@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Search, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 interface ResponsiveLayoutProps {
   children: React.ReactNode
@@ -24,54 +25,64 @@ export function ResponsiveLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Mobile/Tablet Header */}
-      <div className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-        <div className="flex items-center justify-between">
+      <div className="lg:hidden bg-card border-b px-3 py-2 sm:px-4 sm:py-3">
+        <div className="flex items-center justify-between gap-2">
           {/* Left: Hamburger Menu */}
           <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="p-2">
-                <Menu className="h-5 w-5" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-2 h-8 w-8 sm:h-9 sm:w-9"
+              >
+                <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0">
+            <SheetContent 
+              side="left" 
+              className="w-72 p-0 sm:w-80"
+            >
               {sidebar}
             </SheetContent>
           </Sheet>
 
           {/* Center: MasterMail Logo */}
-          <div className="flex-1 flex justify-center">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+          <div className="flex-1 flex justify-center min-w-0">
+            <h1 className="text-lg font-bold text-foreground truncate sm:text-xl">
               MasterMail
             </h1>
           </div>
 
-          {/* Right: Search */}
-          <div className="w-8 h-8 flex items-center justify-center">
-            <Search className="h-4 w-4 text-gray-500" />
+          {/* Right: Search Icon */}
+          <div className="w-8 h-8 flex items-center justify-center sm:w-9 sm:h-9">
+            <Search className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
           </div>
         </div>
 
         {/* Search Bar for Mobile/Tablet */}
         {onSearchChange && (
-          <div className="mt-3">
-            <Input
-              placeholder="Search emails..."
-              value={searchValue}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full"
-            />
+          <div className="mt-2 sm:mt-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search emails..."
+                value={searchValue}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="pl-10 w-full"
+              />
+            </div>
           </div>
         )}
       </div>
 
       {/* Desktop Header */}
-      <div className="hidden lg:block bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className="hidden lg:block bg-card border-b px-6 py-4">
+        <div className="flex items-center justify-between gap-4">
           {/* Left: MasterMail Logo */}
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-foreground">
             MasterMail
           </h1>
 
@@ -79,7 +90,7 @@ export function ResponsiveLayout({
           {onSearchChange && (
             <div className="flex-1 max-w-md mx-8">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search emails..."
                   value={searchValue}
@@ -92,7 +103,10 @@ export function ResponsiveLayout({
 
           {/* Right: Compose Button */}
           {onCompose && (
-            <Button onClick={onCompose} className="bg-blue-600 hover:bg-blue-700">
+            <Button 
+              onClick={onCompose} 
+              className="bg-primary hover:bg-primary/90"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Compose
             </Button>
@@ -101,27 +115,31 @@ export function ResponsiveLayout({
       </div>
 
       {/* Main Content */}
-      <div className="flex">
+      <div className="flex h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)]">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+        <div className="hidden lg:block w-80 bg-card border-r overflow-y-auto">
           {sidebar}
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 min-h-screen">
+        <div className="flex-1 overflow-hidden">
           {children}
         </div>
       </div>
 
       {/* Mobile/Tablet Floating Compose Button */}
       {onCompose && (
-        <div className="fixed bottom-6 right-6 lg:hidden">
+        <div className="fixed bottom-4 right-4 lg:hidden z-50">
           <Button
             onClick={onCompose}
             size="lg"
-            className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg"
+            className={cn(
+              "rounded-full shadow-lg transition-all duration-200",
+              "w-12 h-12 sm:w-14 sm:h-14",
+              "bg-primary hover:bg-primary/90 hover:scale-105"
+            )}
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
             <span className="sr-only">Compose</span>
           </Button>
         </div>

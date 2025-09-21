@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { 
   Inbox, 
   Star, 
@@ -18,6 +19,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { createClient } from "@/lib/supabase"
+import { cn } from "@/lib/utils"
 
 interface ResponsiveSidebarProps {
   onCompose?: () => void
@@ -66,20 +68,20 @@ export function ResponsiveSidebar({
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-card">
       {/* User Profile */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-medium">
+      <div className="p-3 sm:p-4 border-b">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-primary-foreground text-sm font-medium sm:text-base">
               {user?.email?.charAt(0).toUpperCase() || "U"}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <p className="text-sm font-medium text-foreground truncate sm:text-base">
               {user?.user_metadata?.full_name || user?.email || "User"}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-xs text-muted-foreground truncate sm:text-sm">
               {user?.email}
             </p>
           </div>
@@ -87,10 +89,11 @@ export function ResponsiveSidebar({
       </div>
 
       {/* Compose Button - Mobile/Tablet */}
-      <div className="p-4 lg:hidden">
+      <div className="p-3 sm:p-4 lg:hidden">
         <Button 
           onClick={onCompose}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full bg-primary hover:bg-primary/90"
+          size="sm"
         >
           <Mail className="h-4 w-4 mr-2" />
           Compose
@@ -101,7 +104,7 @@ export function ResponsiveSidebar({
       <div className="flex-1 overflow-y-auto">
         {/* Folders */}
         <div className="p-2">
-          <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+          <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Folders
           </h3>
           <nav className="space-y-1">
@@ -113,17 +116,20 @@ export function ResponsiveSidebar({
                 <Button
                   key={folder.id}
                   variant={isActive ? "secondary" : "ghost"}
-                  className={`w-full justify-start h-10 px-3 ${
-                    isActive 
-                      ? "bg-gray-100 dark:bg-gray-700" 
-                      : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                  }`}
+                  className={cn(
+                    "w-full justify-start h-9 px-3 text-sm",
+                    "hover:bg-accent hover:text-accent-foreground",
+                    isActive && "bg-accent text-accent-foreground"
+                  )}
                   onClick={() => onFolderSelect?.(folder.id)}
                 >
-                  <Icon className={`h-4 w-4 mr-3 ${getColorClasses(folder.color).split(' ')[0]}`} />
-                  <span className="flex-1 text-left">{folder.label}</span>
+                  <Icon className={cn(
+                    "h-4 w-4 mr-3 flex-shrink-0",
+                    getColorClasses(folder.color).split(' ')[0]
+                  )} />
+                  <span className="flex-1 text-left truncate">{folder.label}</span>
                   {folder.count > 0 && (
-                    <Badge variant="secondary" className="ml-2 text-xs">
+                    <Badge variant="secondary" className="ml-2 text-xs flex-shrink-0">
                       {folder.count}
                     </Badge>
                   )}
@@ -135,7 +141,7 @@ export function ResponsiveSidebar({
 
         {/* Labels */}
         <div className="p-2">
-          <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+          <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Labels
           </h3>
           <nav className="space-y-1">
@@ -146,17 +152,20 @@ export function ResponsiveSidebar({
                 <Button
                   key={label.id}
                   variant={isActive ? "secondary" : "ghost"}
-                  className={`w-full justify-start h-10 px-3 ${
-                    isActive 
-                      ? "bg-gray-100 dark:bg-gray-700" 
-                      : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                  }`}
+                  className={cn(
+                    "w-full justify-start h-9 px-3 text-sm",
+                    "hover:bg-accent hover:text-accent-foreground",
+                    isActive && "bg-accent text-accent-foreground"
+                  )}
                   onClick={() => onFolderSelect?.(label.id)}
                 >
-                  <div className={`w-3 h-3 rounded-full mr-3 ${getColorClasses(label.color).split(' ')[1]}`} />
-                  <span className="flex-1 text-left">{label.label}</span>
+                  <div className={cn(
+                    "w-3 h-3 rounded-full mr-3 flex-shrink-0",
+                    getColorClasses(label.color).split(' ')[1]
+                  )} />
+                  <span className="flex-1 text-left truncate">{label.label}</span>
                   {label.count > 0 && (
-                    <Badge variant="secondary" className="ml-2 text-xs">
+                    <Badge variant="secondary" className="ml-2 text-xs flex-shrink-0">
                       {label.count}
                     </Badge>
                   )}
@@ -166,47 +175,49 @@ export function ResponsiveSidebar({
           </nav>
         </div>
 
+        <Separator className="my-2" />
+
         {/* Quick Actions */}
         <div className="p-2">
-          <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+          <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Quick Actions
           </h3>
           <nav className="space-y-1">
             <Button
               variant="ghost"
-              className="w-full justify-start h-10 px-3 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="w-full justify-start h-9 px-3 text-sm hover:bg-accent hover:text-accent-foreground"
             >
-              <Clock className="h-4 w-4 mr-3 text-gray-500" />
-              <span className="flex-1 text-left">Snoozed</span>
+              <Clock className="h-4 w-4 mr-3 text-muted-foreground flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Snoozed</span>
             </Button>
             <Button
               variant="ghost"
-              className="w-full justify-start h-10 px-3 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="w-full justify-start h-9 px-3 text-sm hover:bg-accent hover:text-accent-foreground"
             >
-              <Tag className="h-4 w-4 mr-3 text-gray-500" />
-              <span className="flex-1 text-left">Scheduled</span>
+              <Tag className="h-4 w-4 mr-3 text-muted-foreground flex-shrink-0" />
+              <span className="flex-1 text-left truncate">Scheduled</span>
             </Button>
           </nav>
         </div>
       </div>
 
       {/* Settings & Sign Out */}
-      <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-2 border-t">
         <nav className="space-y-1">
           <Button
             variant="ghost"
-            className="w-full justify-start h-10 px-3 hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="w-full justify-start h-9 px-3 text-sm hover:bg-accent hover:text-accent-foreground"
           >
-            <Settings className="h-4 w-4 mr-3 text-gray-500" />
-            <span className="flex-1 text-left">Settings</span>
+            <Settings className="h-4 w-4 mr-3 text-muted-foreground flex-shrink-0" />
+            <span className="flex-1 text-left truncate">Settings</span>
           </Button>
           <Button
             variant="ghost"
-            className="w-full justify-start h-10 px-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-red-600 hover:text-red-700"
+            className="w-full justify-start h-9 px-3 text-sm hover:bg-destructive hover:text-destructive-foreground text-destructive"
             onClick={handleSignOut}
           >
-            <LogOut className="h-4 w-4 mr-3" />
-            <span className="flex-1 text-left">Sign Out</span>
+            <LogOut className="h-4 w-4 mr-3 flex-shrink-0" />
+            <span className="flex-1 text-left truncate">Sign Out</span>
           </Button>
         </nav>
       </div>
