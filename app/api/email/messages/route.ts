@@ -74,8 +74,10 @@ export async function GET(request: NextRequest) {
       // If no messages exist, try to sync from Gmail
       if (!existingMessages || existingMessages.length === 0) {
         try {
-          const syncService = new EmailSyncService()
-          await syncService.syncAccount(accountId)
+          console.log("[DEBUG] No messages found, attempting Gmail sync...")
+          const { GmailApiService } = await import("@/lib/gmail/gmail-api-service")
+          const gmailService = new GmailApiService()
+          await gmailService.getMessages(user.id)
         } catch (syncError) {
           console.error("Gmail sync error:", syncError)
           // Continue with empty results if sync fails

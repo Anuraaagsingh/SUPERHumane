@@ -1,7 +1,7 @@
 "use client"
 
 import { useAuth } from "@/hooks/use-auth"
-import { InboxLayout } from "@/components/inbox/inbox-layout"
+import { ResponsiveInboxLayout } from "@/components/inbox/responsive-inbox-layout"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
@@ -30,5 +30,5 @@ export function InboxPage() {
     return null // Will redirect via useEffect
   }
 
-  return <InboxLayout user={user} />
+  return <ResponsiveInboxLayout user={user} />
 }

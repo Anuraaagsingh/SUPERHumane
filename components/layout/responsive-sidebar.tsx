@@ -8,7 +8,7 @@ import {
   Inbox, 
   Star, 
   Send, 
-  Drafts, 
+  FileText, 
   Trash2, 
   Archive, 
   Settings, 
@@ -43,7 +43,7 @@ export function ResponsiveSidebar({
     { id: "inbox", label: "Inbox", icon: Inbox, count: 12, color: "blue" },
     { id: "starred", label: "Starred", icon: Star, count: 3, color: "yellow" },
     { id: "sent", label: "Sent", icon: Send, count: 0, color: "green" },
-    { id: "drafts", label: "Drafts", icon: Drafts, count: 2, color: "gray" },
+    { id: "drafts", label: "Drafts", icon: FileText, count: 2, color: "gray" },
     { id: "archive", label: "Archive", icon: Archive, count: 0, color: "purple" },
     { id: "trash", label: "Trash", icon: Trash2, count: 0, color: "red" },
   ]

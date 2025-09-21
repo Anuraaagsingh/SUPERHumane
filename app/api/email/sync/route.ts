@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
-import { SupabaseGmailService } from "@/lib/gmail/supabase-gmail-service"
+import { GmailApiService } from "@/lib/gmail/gmail-api-service"
 import { getSupabaseConfig } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 })
     }
 
-    const gmailService = new SupabaseGmailService()
+    const gmailService = new GmailApiService()
     await gmailService.getMessages(user.id)
 
     return NextResponse.json({ success: true })
