@@ -1,3 +1,4 @@
+import { ResponsiveInboxLayout } from "@/components/inbox/responsive-inbox-layout"
 import { InboxPage } from "@/components/inbox/inbox-page"
 
 export const dynamic = 'force-dynamic'
