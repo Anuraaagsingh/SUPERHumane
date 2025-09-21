@@ -15,7 +15,7 @@ import { Search, RefreshCw, Edit, HelpCircle, PanelLeft, PanelRight } from "luci
 import { Input } from "@/components/ui/input"
 import { useEmailSync, useMessages, useInfiniteMessages, useInfiniteScroll } from "@/hooks/use-email-sync"
 import { useGmailShortcuts, useTwoKeyShortcuts } from "@/hooks/use-keyboard-shortcuts"
-import { createClient } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 import { useQuery } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
 import { logger } from "@/lib/logger"

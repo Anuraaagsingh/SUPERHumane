@@ -1,42 +1,35 @@
 # MasterMail Fix Tasks
 
-## Authentication Issues
-- [x] Fix login callback route to be dynamic
-- [x] Fix cookie handling in server components
-- [x] Ensure proper token extraction from OAuth session
-- [x] Add debug logging to trace authentication flow
-- [x] Fix Gmail API scopes and permissions
-- [x] Fix callback URL configuration
+## Tasks
 
-## API Connections
-- [x] Fix Gmail API integration
-- [x] Add error handling for token expiration
-- [x] Implement token refresh mechanism
-- [x] Verify Supabase table structure and permissions
-- [x] Ensure environment variables are correctly set
-- [x] Remove Edge runtime to fix Node.js module compatibility issues
+### In Progress
 
-## UI/UX Issues
-- [x] Add better error messages during authentication
-- [x] Implement loading states during API calls
-- [x] Ensure proper redirects after authentication
-- [x] Add fallback for failed API connections
+- [ ] **Fix Login Loop:**
+  - [x] Investigated the authentication flow and identified inconsistencies in Supabase client initialization.
+  - [x] Refactored the Supabase client to use a unified `createClient` for browser, server, and middleware.
+  - [x] Updated all Supabase client imports to use the new, consistent clients.
+  - [x] Simplified the `useAuth` hook and login callback to remove redundant profile setup calls.
+  - [ ] After thorough testing, this issue appears to be resolved. Final verification is pending.
 
-## Deployment
-- [x] Ensure Vercel environment variables are set correctly
-- [x] Add CORS configuration for API endpoints
-- [x] Fix dynamic routes handling in production
+### Completed
 
-## Important Notes for Deployment
-1. Make sure your Supabase project has the correct OAuth settings:
-   - Redirect URL should be exactly: `https://your-domain.com/login/callback`
-   - Required scopes: `https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify`
+- [x] **Fix `simple-inbox.tsx` Data Inconsistencies:**
+  - [x] Updated the `Email` interface to include the `is_archived` property.
+  - [x] Made the folder count and email filtering logic consistent by using the `is_archived` property.
+  - [x] Ensured the archive button correctly reflects the email's archived state.
 
-2. Ensure these environment variables are set in Vercel:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_SITE_URL` (should match your deployed URL)
+### Backlog
 
-3. Database tables must be created in Supabase:
-   - Run the SQL script in `scripts/001-initial-schema.sql`
-   - This creates the required tables for users, email accounts, and email metadata
+- [ ] **Implement Email Actions:**
+  - [ ] Add functionality for starring, snoozing, and deleting emails.
+  - [ ] Connect the UI buttons to the `handleEmailAction` function.
+
+- [ ] **Improve UI/UX:**
+  - [ ] Add loading skeletons for a smoother initial load.
+  - [ ] Implement animations for a more polished user experience.
+  - [ ] Ensure the layout is fully responsive for mobile and tablet devices.
+
+- [ ] **Add New Features:**
+  - [ ] Implement a command palette for quick actions.
+  - [ ] Add support for multiple email accounts.
+  - [ ] Implement keyboard shortcuts for power users.

@@ -31,7 +31,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useQuery } from "@tanstack/react-query"
-import { createClient } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 import { useTheme } from "next-themes"
 import { useToast } from "@/hooks/use-toast"

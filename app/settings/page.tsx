@@ -1,11 +1,11 @@
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { SettingsForm } from "@/components/settings-form"
 
 export const dynamic = 'force-dynamic'
 
 export default async function SettingsPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = createClient()
   
   const {
     data: { user },

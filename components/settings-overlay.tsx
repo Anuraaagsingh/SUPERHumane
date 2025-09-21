@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { X, User, Bell, Keyboard, Palette, Sun, Moon, Monitor } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useToast } from "@/hooks/use-toast"
-import { createClient } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 
 interface SettingsOverlayProps {
   isOpen: boolean

@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase'
+import { createClient } from "@/lib/supabase/client"
+import { SupabaseClient } from "@supabase/supabase-js"
 
 export class SupabaseGmailService {
   private supabase = createClient()

@@ -1,12 +1,12 @@
+import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { createServerSupabaseClient } from "@/lib/supabase-server"
 
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
   console.log("[v0] HomePage - checking auth")
 
-  const supabase = createServerSupabaseClient()
+  const supabase = createClient()
 
   try {
     const {

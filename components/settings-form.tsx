@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { createClient } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 
 interface SettingsFormProps {
   user: any
