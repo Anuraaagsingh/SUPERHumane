@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     console.log('[Gmail Auth] Environment check:', {
       nodeEnv: process.env.NODE_ENV,
       vercel: !!process.env.VERCEL,
+      vercelEnv: process.env.VERCEL_ENV,
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
       hasClientId: !!process.env.GOOGLE_CLIENT_ID,
       hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET
@@ -17,8 +18,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Gmail OAuth not configured',
-          details: 'GOOGLE_CLIENT_ID environment variable is missing. Please create a .env.local file with your Google OAuth credentials. See setup-oauth.md for instructions.',
-          setupRequired: true
+          details: 'GOOGLE_CLIENT_ID environment variable is missing. Please set this in your Vercel dashboard under Environment Variables.',
+          setupRequired: true,
+          debug: {
+            nodeEnv: process.env.NODE_ENV,
+            vercel: !!process.env.VERCEL,
+            allEnvKeys: Object.keys(process.env).filter(key => key.includes('GOOGLE') || key.includes('SITE'))
+          }
         },
         { status: 500 }
       )
@@ -29,8 +35,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Gmail OAuth not configured',
-          details: 'GOOGLE_CLIENT_SECRET environment variable is missing. Please create a .env.local file with your Google OAuth credentials. See setup-oauth.md for instructions.',
-          setupRequired: true
+          details: 'GOOGLE_CLIENT_SECRET environment variable is missing. Please set this in your Vercel dashboard under Environment Variables.',
+          setupRequired: true,
+          debug: {
+            nodeEnv: process.env.NODE_ENV,
+            vercel: !!process.env.VERCEL,
+            allEnvKeys: Object.keys(process.env).filter(key => key.includes('GOOGLE') || key.includes('SITE'))
+          }
         },
         { status: 500 }
       )

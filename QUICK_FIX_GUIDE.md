@@ -1,91 +1,82 @@
-# 🚀 QUICK FIX GUIDE - Gmail Integration & Database Issues
+# 🚀 Quick Fix for Gmail Authentication 500 Error
 
-## 🚨 **CRITICAL: Database Setup Required First**
+## Immediate Steps to Fix the Issue
 
-### Step 1: Set Up Database (2 minutes)
-1. Go to your **Supabase project dashboard**
-2. Click **"SQL Editor"** in the left sidebar
-3. Copy the entire contents of `scripts/setup-database.sql`
-4. Paste and **Run** the script
-5. Verify you see: `Setup complete! | users_count: 1 | accounts_count: 1 | emails_count: 12`
+### 1. Check Vercel Deployment Protection ⚠️
+**This is likely the main cause of your 500 error!**
 
-### Step 2: Configure Gmail OAuth (3 minutes)
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing
-3. Enable **Gmail API** and **Google+ API**
-4. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client IDs**
-5. Set **Application type** to "Web application"
-6. Add **Authorized redirect URIs**:
-   - `http://localhost:3000/api/auth/gmail-callback` (development)
-   - `https://your-domain.vercel.app/api/auth/gmail-callback` (production)
-7. Copy the **Client ID** and **Client Secret**
+1. Go to your [Vercel Dashboard](https://vercel.com/dashboard)
+2. Select your project: `super-humane-f3drn93cj-anurags-projects-47784640`
+3. Go to **Settings** → **Security**
+4. Look for **"Deployment Protection"** section
+5. **DISABLE** deployment protection or configure it to allow API routes
+6. Save changes
 
-### Step 3: Update Environment Variables
-Add these to your **Vercel Environment Variables**:
+### 2. Set Environment Variables in Vercel 🔧
 
-```bash
-# Gmail OAuth
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+Go to your Vercel project settings and add these environment variables:
 
-# Site URL (for OAuth redirects)
-NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
-
-# Supabase (if not already set)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+NEXT_PUBLIC_SITE_URL=https://super-humane-mvt9kmllb-anurags-projects-47784640.vercel.app
 ```
 
-### Step 4: Deploy and Test
-1. **Deploy** the updated code to Vercel
-2. **Test Demo Account**:
-   - Login with `demo@mastermail.com` / `demo123`
-   - Should see 12 emails immediately
-3. **Test Gmail Account**:
-   - Click "Continue with Gmail"
-   - Complete OAuth flow
-   - Should see your Gmail emails
+**Steps:**
+1. Vercel Dashboard → Your Project → Settings → Environment Variables
+2. Add each variable above
+3. Make sure to select "Production" environment
+4. Save and redeploy
 
-## 🔧 **Debug Tools Available**
+### 3. Fix Google OAuth Redirect URI 🔗
 
-### In the Inbox UI:
-- **🔍 Debug emails** - Check account/email counts
-- **📧 Populate demo** - Manually add demo emails
-- **🏥 Check database** - Verify database health
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Navigate to **APIs & Services** → **Credentials**
+3. Click on your OAuth 2.0 Client ID
+4. In **"Authorized redirect URIs"**, add:
+   ```
+   https://super-humane-mvt9kmllb-anurags-projects-47784640.vercel.app/api/auth/gmail-callback
+   ```
+5. Save changes
 
-### API Endpoints:
-- `GET /api/health/database` - Database health check
-- `GET /api/debug/emails` - Debug email data
-- `POST /api/debug/populate-demo` - Populate demo emails
+### 4. Test the Configuration 🧪
 
-## 🐛 **Common Issues & Solutions**
+After making the above changes:
 
-### Issue: "Could not find table 'public.users'"
-**Solution**: Run the database setup script in Supabase SQL Editor
+1. **Redeploy** your Vercel application
+2. Visit: `https://super-humane-mvt9kmllb-anurags-projects-47784640.vercel.app/api/debug/gmail-config`
+3. Check if all environment variables are properly set
+4. Try the Gmail login again
 
-### Issue: Gmail OAuth redirects to wrong URL
-**Solution**: Check `NEXT_PUBLIC_SITE_URL` environment variable
+### 5. Check Vercel Function Logs 📊
 
-### Issue: Gmail API quota exceeded
-**Solution**: Wait 24 hours or request quota increase in Google Cloud Console
+If still having issues:
 
-### Issue: Emails not syncing from Gmail
-**Solution**: Check Gmail API credentials and scopes
+1. Go to Vercel Dashboard → Your Project → Functions
+2. Click on the `gmail-auth` function
+3. Check the logs for detailed error messages
+4. Look for the debug information we added
 
-## 📊 **Expected Results**
+## Expected Results ✅
 
-After setup, you should see:
-- ✅ **Demo account**: 12 realistic emails with snippets
-- ✅ **Gmail account**: Your actual Gmail emails synced
-- ✅ **Working features**: Star, archive, compose, keyboard shortcuts
-- ✅ **Debug tools**: All buttons working and showing correct data
+After these fixes:
+- The 500 error should be resolved
+- Gmail authentication should work properly
+- You should be redirected to Google OAuth consent screen
+- After consent, you should be redirected back to your app
 
-## 🆘 **If Still Having Issues**
+## Common Issues & Solutions
 
-1. **Check Vercel logs** for specific errors
-2. **Use debug buttons** to identify the problem
-3. **Verify environment variables** are set correctly
-4. **Check Supabase logs** for database errors
+| Issue | Solution |
+|-------|----------|
+| 500 Internal Server Error | Disable Vercel Deployment Protection |
+| redirect_uri_mismatch | Add correct redirect URI to Google Console |
+| Environment variables not found | Set them in Vercel dashboard |
+| Still getting localhost redirects | Check NEXT_PUBLIC_SITE_URL is set correctly |
 
-The new Gmail integration uses direct OAuth flow instead of Supabase Auth, which should resolve the integration issues you were experiencing.
+## Need Help? 🆘
+
+If you're still having issues after these steps:
+1. Check the debug endpoint: `/api/debug/gmail-config`
+2. Check Vercel function logs
+3. Verify all environment variables are set correctly
