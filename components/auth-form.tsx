@@ -26,15 +26,22 @@ export function AuthForm() {
   const handleGoogleAuth = async () => {
     console.log("[Supabase] Starting Google OAuth")
     console.log("[Supabase] Current origin:", window.location.origin)
-    console.log("[Supabase] Supabase client:", !!supabase)
     
     setIsLoading("google")
     try {
+      // Get the next URL from the query string, if any
+      const urlParams = new URLSearchParams(window.location.search);
+      const nextPath = urlParams.get('next') || '/inbox';
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/login/callback`,
-          scopes: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify'
+          redirectTo: `${window.location.origin}/login/callback?next=${encodeURIComponent(nextPath)}`,
+          scopes: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       })
       
@@ -51,7 +58,20 @@ export function AuthForm() {
         return
       }
       
-      console.log("[Supabase] Google OAuth initiated successfully")
+      if (!data.url) {
+        console.error("[Supabase] No OAuth URL returned")
+        toast({
+          title: "Authentication Error",
+          description: "Failed to start Google authentication. Please try again.",
+          variant: "destructive",
+        })
+        setIsLoading(null)
+        return
+      }
+      
+      // Redirect to the OAuth URL
+      console.log("[Supabase] Google OAuth initiated successfully, redirecting to:", data.url)
+      window.location.href = data.url
     } catch (error: any) {
       console.error("[Supabase] Google auth error:", error)
       toast({

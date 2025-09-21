@@ -19,39 +19,62 @@ export function createClient(request: NextRequest) {
         },
         set(name: string, value: string, options: CookieOptions) {
           // If the cookie is updated, update the cookies for the request and response
-          request.cookies.set({
+          const cookieOptions = {
             name,
             value,
             ...options,
-          })
+            // Ensure cookies are properly set for auth
+            path: options.path || '/',
+            sameSite: options.sameSite || 'lax',
+            httpOnly: options.httpOnly !== false,
+            secure: process.env.NODE_ENV === 'production' || options.secure,
+          };
+          
+          try {
+            request.cookies.set(cookieOptions);
+          } catch (e) {
+            console.warn("[Cookie Warning] Failed to set request cookie:", e);
+          }
+          
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
-          })
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          });
+          
+          try {
+            response.cookies.set(cookieOptions);
+          } catch (e) {
+            console.warn("[Cookie Warning] Failed to set response cookie:", e);
+          }
         },
         remove(name: string, options: CookieOptions) {
           // If the cookie is removed, update the cookies for the request and response
-          request.cookies.set({
+          const cookieOptions = {
             name,
             value: "",
             ...options,
-          })
+            path: options.path || '/',
+            expires: new Date(0),
+          };
+          
+          try {
+            request.cookies.set(cookieOptions);
+          } catch (e) {
+            console.warn("[Cookie Warning] Failed to remove request cookie:", e);
+          }
+          
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
-          })
-          response.cookies.set({
-            name,
-            value: "",
-            ...options,
-          })
+          });
+          
+          try {
+            response.cookies.set(cookieOptions);
+          } catch (e) {
+            console.warn("[Cookie Warning] Failed to remove response cookie:", e);
+          }
         },
       },
     }

@@ -2,6 +2,16 @@
 
 If you're experiencing a login loop where you're continuously redirected back to the login page after attempting to authenticate, follow this guide to diagnose and fix the issue.
 
+## Recent Fixes
+
+We've made several improvements to the authentication flow that should resolve most login loop issues:
+
+1. **Eliminated Redundant API Calls**: Fixed duplicate profile setup calls that could cause race conditions.
+2. **Improved Cookie Handling**: Enhanced cookie management in both server and middleware contexts.
+3. **Enhanced Middleware**: Added better route protection and session validation.
+4. **Improved OAuth Flow**: Updated Google OAuth flow with proper parameters for reliable authentication.
+5. **Better Error Handling**: Added more comprehensive error logging and user feedback.
+
 ## 1. Environment Variables
 
 Ensure these environment variables are properly set in your `.env.local` file (for local development) and in your Vercel project settings (for deployment):
@@ -76,11 +86,25 @@ The application includes several debugging endpoints:
 - Check if cookies are being properly set
 - Verify that the middleware is correctly handling authentication
 - Check if there are any CORS issues
+- Make sure your browser accepts third-party cookies
 
 ### Continuous Redirect Loop
 - Check that the middleware is correctly detecting authenticated users
 - Verify that the `useAuth` hook is properly setting the user state
 - Make sure the login callback is correctly exchanging the code for a session
+- Check browser console for any cookie-related errors
+- Try using an incognito window to rule out browser extension issues
+
+### Cookie-Related Issues
+- Ensure cookies are being set with the proper domain
+- Check that the `sameSite` attribute is set to `lax` or `none` (with secure)
+- Verify that cookies are not being blocked by browser settings
+- For production, ensure the `secure` flag is set
+
+### OAuth Configuration Issues
+- Make sure `access_type` is set to `offline` to get a refresh token
+- Set `prompt` to `consent` to ensure the user is prompted for consent
+- Double-check that the scopes match exactly between Google Cloud Console and your code
 
 ## 7. Logging and Monitoring
 

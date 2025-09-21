@@ -35,23 +35,8 @@ export async function GET(request: NextRequest) {
         hasProviderToken: !!data.session?.provider_token,
       })
       
-      // Call the setup-profile API to ensure user data is saved
-      try {
-        const setupResponse = await fetch(`${origin}/api/auth/setup-profile`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        })
-        
-        if (!setupResponse.ok) {
-          console.warn("[AUTH] Profile setup warning:", await setupResponse.text())
-        }
-      } catch (setupError) {
-        console.error("[AUTH] Profile setup error:", setupError)
-        // Continue with redirect even if profile setup fails
-      }
+      // Profile setup will be handled by the useAuth hook on the client side
+      // This prevents redundant setup calls and potential race conditions
       
       // The user is authenticated, redirect them to the inbox
       return NextResponse.redirect(`${origin}${next}`)
