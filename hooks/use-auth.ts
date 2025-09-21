@@ -24,12 +24,20 @@ export function useAuth() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("[v0] Auth state change:", event, !!session?.user)
+        console.log("[Supabase Auth] State change:", {
+          event,
+          hasUser: !!session?.user,
+          userEmail: session?.user?.email,
+          provider: session?.user?.app_metadata?.provider
+        })
+        
         setUser(session?.user ?? null)
         setLoading(false)
 
         if (event === 'SIGNED_IN' && session?.user) {
-          // Call setup profile for non-OAuth logins
+          console.log("[Supabase Auth] User signed in, setting up profile...")
+          
+          // Call setup profile for all logins
           try {
             const response = await fetch('/api/auth/setup-profile', {
               method: 'POST',
@@ -37,14 +45,23 @@ export function useAuth() {
                 'Content-Type': 'application/json',
               },
             })
-            console.log('[DEBUG] Setup profile response:', response.status)
+            
+            if (response.ok) {
+              console.log('[Supabase Auth] Profile setup successful')
+              // Redirect to inbox after successful setup
+              router.push('/inbox')
+            } else {
+              console.error('[Supabase Auth] Profile setup failed:', response.status)
+              // Still redirect to inbox even if setup fails
+              router.push('/inbox')
+            }
           } catch (error) {
-            console.error('[DEBUG] Setup profile error:', error)
+            console.error('[Supabase Auth] Profile setup error:', error)
+            // Still redirect to inbox even if setup fails
+            router.push('/inbox')
           }
-          
-          // Redirect to inbox after successful sign in
-          router.push('/inbox')
         } else if (event === 'SIGNED_OUT') {
+          console.log("[Supabase Auth] User signed out")
           // Redirect to login after sign out
           router.push('/login')
         }

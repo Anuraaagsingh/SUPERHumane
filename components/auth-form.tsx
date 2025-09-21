@@ -25,9 +25,12 @@ export function AuthForm() {
 
   const handleGoogleAuth = async () => {
     console.log("[Supabase] Starting Google OAuth")
+    console.log("[Supabase] Current origin:", window.location.origin)
+    console.log("[Supabase] Supabase client:", !!supabase)
+    
     setIsLoading("google")
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/login/callback`,
@@ -35,7 +38,10 @@ export function AuthForm() {
         }
       })
       
+      console.log("[Supabase] OAuth response:", { data, error })
+      
       if (error) {
+        console.error("[Supabase] OAuth error details:", error)
         throw error
       }
       

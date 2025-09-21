@@ -9,11 +9,18 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get("next") ?? "/inbox"
   const error = searchParams.get("error")
 
-  console.log("[v0] OAuth callback - code:", !!code, "next:", next, "error:", error)
+  console.log("[Supabase OAuth] Callback received:", {
+    code: !!code,
+    next,
+    error,
+    origin,
+    fullUrl: request.url,
+    searchParams: Object.fromEntries(searchParams.entries())
+  })
 
   // Handle OAuth errors
   if (error) {
-    console.log("[v0] OAuth error:", error)
+    console.log("[Supabase OAuth] Error received:", error)
     return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error)}`)
   }
 
@@ -38,7 +45,13 @@ export async function GET(request: NextRequest) {
     try {
       const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-      console.log("[v0] Auth exchange result - user:", !!data?.user, "error:", exchangeError)
+      console.log("[Supabase OAuth] Auth exchange result:", {
+        user: !!data?.user,
+        session: !!data?.session,
+        error: exchangeError,
+        userEmail: data?.user?.email,
+        provider: data?.user?.app_metadata?.provider
+      })
 
       if (exchangeError) {
         console.error("[v0] Auth exchange error:", exchangeError)
