@@ -8,7 +8,10 @@
   - [x] Investigated the authentication flow and identified inconsistencies in Supabase client initialization.
   - [x] Refactored the Supabase client to use a unified `createClient` for browser, server, and middleware.
   - [x] Updated all Supabase client imports to use the new, consistent clients.
-  - [x] Simplified the `useAuth` hook and login callback to remove redundant profile setup calls.
+  - [x] Restored essential functionality to the `setup-profile` route that was accidentally removed.
+  - [x] Updated middleware to properly handle authentication and redirects.
+  - [x] Restored proper authentication state handling in the `useAuth` hook.
+  - [x] Enhanced the login callback route to properly handle the OAuth flow.
   - [ ] After thorough testing, this issue appears to be resolved. Final verification is pending.
 
 ### Completed
