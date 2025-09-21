@@ -3,10 +3,18 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
 export async function GET() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Missing Supabase URL or Anon Key")
+    return new NextResponse("Missing Supabase URL or Anon Key", { status: 500 })
+  }
+
   const cookieStore = await cookies()
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {

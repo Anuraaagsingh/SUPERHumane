@@ -6,13 +6,13 @@ export class SupabaseGmailService {
   async getMessages(userId: string, maxResults = 50) {
     try {
       // Get the user's session to access provider tokens
-      const { data: { user }, error: userError } = await this.supabase.auth.getUser()
+      const { data: { session }, error: sessionError } = await this.supabase.auth.getSession()
       
-      if (userError || !user) {
+      if (sessionError || !session) {
         throw new Error('User not authenticated')
       }
 
-      const providerToken = user.session?.provider_token
+      const providerToken = session?.provider_token
       if (!providerToken) {
         throw new Error('No Gmail access token available')
       }

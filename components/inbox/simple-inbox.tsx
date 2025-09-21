@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils"
 import { useTheme } from "next-themes"
 import { useToast } from "@/hooks/use-toast"
 import { formatDistanceToNow } from "date-fns"
+import { useMemo } from "react"
 
 interface SimpleInboxProps {
   user: any
@@ -51,6 +52,7 @@ interface Email {
   received_at: string
   is_read: boolean
   is_starred: boolean
+  is_archived: boolean
   has_attachments: boolean
   labels: string[]
 }
@@ -70,8 +72,8 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
   const [needsReauth, setNeedsReauth] = useState(false)
   
   // Fetch emails
-  const { data: emails = [], isLoading, refetch, error } = useQuery({
-    queryKey: ["emails", user.id, selectedFolder],
+  const { data: allEmails = [], isLoading, refetch, error } = useQuery({
+    queryKey: ["emails", user.id],
     queryFn: async () => {
       try {
         const response = await fetch('/api/gmail/messages');
@@ -87,19 +89,7 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
           throw new Error(data.error || 'Failed to fetch emails');
         }
 
-        // The rest of the filtering logic can be done client-side for simplicity
-        let filteredData = data;
-        if (selectedFolder === "starred") {
-          filteredData = data.filter((e: Email) => e.is_starred);
-        } else if (selectedFolder === "archived") {
-          filteredData = data.filter((e: Email) => e.labels?.includes("ARCHIVED")); 
-        } else if (selectedFolder === "sent") {
-          filteredData = data.filter((e: Email) => e.labels?.includes("SENT"));
-        } else { // Inbox
-          filteredData = data.filter((e: Email) => !e.labels?.includes("ARCHIVED"));
-        }
-
-        return filteredData || []
+        return data || []
       } catch (err) {
         console.error("Error fetching emails:", err)
         throw err;
@@ -107,6 +97,21 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
     },
     retry: 1, // Only retry once
   })
+
+  const emails = useMemo(() => {
+    let filteredData = allEmails;
+    if (selectedFolder === "starred") {
+      filteredData = allEmails.filter((e: Email) => e.is_starred);
+    } else if (selectedFolder === "archived") {
+      filteredData = allEmails.filter((e: Email) => e.is_archived); 
+    } else if (selectedFolder === "sent") {
+      filteredData = allEmails.filter((e: Email) => e.labels?.includes("SENT"));
+    } else { // Inbox
+      filteredData = allEmails.filter((e: Email) => !e.is_archived);
+    }
+    return filteredData
+  }, [allEmails, selectedFolder])
+
 
   const handleLogout = async () => {
     try {
@@ -125,12 +130,15 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
   }
 
   const handleEmailAction = async (emailId: string, action: string) => {
+    const message = allEmails.find((e: Email) => e.id === emailId)
+    if (!message) return
+
     try {
-      let updates: any = {}
+      const updates: Partial<Email> & { is_archived?: boolean } = {}
       
       switch (action) {
         case "star":
-          updates.is_starred = !updates.is_starred
+          updates.is_starred = !message.is_starred
           break
         case "read":
           updates.is_read = true
@@ -199,12 +207,12 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
     email.snippet?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const folders = [
-    { id: "inbox", name: "Inbox", icon: Mail, count: emails.filter((e: Email) => !e.is_archived).length },
-    { id: "starred", name: "Starred", icon: Star, count: emails.filter((e: Email) => e.is_starred).length },
-    { id: "sent", name: "Sent", icon: MailOpen, count: emails.filter((e: Email) => e.labels?.includes("sent")).length },
-    { id: "archived", name: "Archive", icon: Archive, count: emails.filter((e: Email) => e.is_archived).length },
-  ]
+  const folders = useMemo(() => [
+    { id: "inbox", name: "Inbox", icon: Mail, count: allEmails.filter((e: Email) => !e.is_archived).length },
+    { id: "starred", name: "Starred", icon: Star, count: allEmails.filter((e: Email) => e.is_starred).length },
+    { id: "sent", name: "Sent", icon: MailOpen, count: allEmails.filter((e: Email) => e.labels?.includes("SENT")).length },
+    { id: "archived", name: "Archive", icon: Archive, count: allEmails.filter((e: Email) => !!e.is_archived).length },
+  ], [allEmails])
 
   return (
     <div className="h-screen flex bg-background">
@@ -428,14 +436,14 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleEmailAction(selectedMessage.id, selectedMessage.is_starred ? "unstar" : "star")}
+                    onClick={() => handleEmailAction(selectedMessage.id, "star")}
                   >
                     <Star className={cn("h-4 w-4", selectedMessage.is_starred && "text-yellow-500 fill-current")} />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleEmailAction(selectedMessage.id, "archive")}
+                    onClick={() => handleEmailAction(selectedMessage.id, selectedMessage.is_archived ? "unarchive" : "archive")}
                   >
                     <Archive className="h-4 w-4" />
                   </Button>

@@ -68,43 +68,43 @@ ALTER TABLE email_metadata ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for users table
 CREATE POLICY "Users can view own profile" ON users 
-  FOR SELECT USING (auth.uid()::text = id::text);
+  FOR SELECT USING (auth.uid() = id);
 
 CREATE POLICY "Users can insert own profile" ON users 
-  FOR INSERT WITH CHECK (auth.uid()::text = id::text);
+  FOR INSERT WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Users can update own profile" ON users 
-  FOR UPDATE USING (auth.uid()::text = id::text);
+  FOR UPDATE USING (auth.uid() = id);
 
 -- RLS Policies for email_accounts table
 CREATE POLICY "Users can view own email accounts" ON email_accounts 
-  FOR SELECT USING (user_id::text = auth.uid()::text);
+  FOR SELECT USING (user_id = auth.uid());
 
 CREATE POLICY "Users can insert own email accounts" ON email_accounts 
-  FOR INSERT WITH CHECK (user_id::text = auth.uid()::text);
+  FOR INSERT WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "Users can update own email accounts" ON email_accounts 
-  FOR UPDATE USING (user_id::text = auth.uid()::text);
+  FOR UPDATE USING (user_id = auth.uid());
 
 -- RLS Policies for email_metadata table
 CREATE POLICY "Users can view own email metadata" ON email_metadata 
   FOR SELECT USING (
     account_id IN (
-      SELECT id FROM email_accounts WHERE user_id::text = auth.uid()::text
+      SELECT id FROM email_accounts WHERE user_id = auth.uid()
     )
   );
 
 CREATE POLICY "Users can insert own email metadata" ON email_metadata 
   FOR INSERT WITH CHECK (
     account_id IN (
-      SELECT id FROM email_accounts WHERE user_id::text = auth.uid()::text
+      SELECT id FROM email_accounts WHERE user_id = auth.uid()
     )
   );
 
 CREATE POLICY "Users can update own email metadata" ON email_metadata 
   FOR UPDATE USING (
     account_id IN (
-      SELECT id FROM email_accounts WHERE user_id::text = auth.uid()::text
+      SELECT id FROM email_accounts WHERE user_id = auth.uid()
     )
   );
 

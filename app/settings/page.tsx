@@ -17,11 +17,16 @@ export default async function SettingsPage() {
   }
 
   // Get user profile
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("users")
     .select("*")
     .eq("id", user.id)
     .single()
+
+  if (error || !profile) {
+    console.error("Error fetching profile:", error)
+    throw new Error("Could not fetch user profile.")
+  }
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">

@@ -1,15 +1,42 @@
 import { type CookieOptions, createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
-import { google } from "googleapis"
+import { google, type gmail_v1 } from "googleapis"
 
 export const dynamic = 'force-dynamic'
+
+const hasAttachments = (message: gmail_v1.Schema$Message): boolean => {
+  if (!message.payload) {
+    return false
+  }
+
+  const partsToSearch = [message.payload]
+
+  while (partsToSearch.length > 0) {
+    const part = partsToSearch.shift()
+
+    if (part?.filename && part.filename.length > 0) {
+      return true
+    }
+
+    if (part?.body?.attachmentId) {
+      return true
+    }
+
+    if (part?.parts) {
+      partsToSearch.push(...part.parts)
+    }
+  }
+
+  return false
+}
+
+
 // Remove edge runtime to allow Node.js modules to work
 
 export async function GET() {
   console.log("[GMAIL] Fetching messages")
   const cookieStore = cookies()
-  const response = NextResponse.next()
   
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,12 +47,22 @@ export async function GET() {
           return cookieStore.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set({ name, value, ...options })
-          response.cookies.set({ name, value, ...options })
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch (error) {
+            // The `set` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
         },
         remove(name: string, options: CookieOptions) {
-          cookieStore.set({ name, value: "", ...options })
-          response.cookies.set({ name, value: "", ...options })
+          try {
+            cookieStore.set({ name, value: "", ...options })
+          } catch (error) {
+            // The `remove` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
         },
       },
     }
@@ -132,8 +169,7 @@ export async function GET() {
       gmail.users.messages.get({
         userId: "me",
         id: message.id!,
-        format: "METADATA",
-        metadataHeaders: ["Subject", "From", "Date", "Snippet"],
+        format: "full",
       }).catch(err => {
         console.error("[GMAIL] Error fetching message", message.id, ":", err)
         return null // Return null for failed messages
@@ -166,7 +202,7 @@ export async function GET() {
               received_at: getHeader("Date"),
               is_read: !email.data.labelIds?.includes("UNREAD"),
               is_starred: email.data.labelIds?.includes("STARRED"),
-              has_attachments: false, // This would require a more detailed fetch
+              has_attachments: hasAttachments(email.data), // This would require a more detailed fetch
               labels: email.data.labelIds,
           }
         } catch (err) {
