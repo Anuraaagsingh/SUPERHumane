@@ -46,6 +46,19 @@ export function LoginPage({ error }: { error?: string }) {
                 <p>Please check the setup-oauth.md file for instructions.</p>
               </div>
             )}
+            {error.includes('callback') && (
+              <div className="mt-2 text-xs text-red-400">
+                <p>This may be due to incorrect redirect URIs or missing environment variables.</p>
+                <p>Check that your callback URL is exactly configured in both Google Cloud Console and Supabase.</p>
+              </div>
+            )}
+            <div className="mt-2 text-xs text-slate-400">
+              <p>Debug links:</p>
+              <ul className="list-disc pl-4 mt-1">
+                <li><a href="/api/debug/env" className="underline hover:text-white">Check Environment Variables</a></li>
+                <li><a href="/api/debug/auth" className="underline hover:text-white">Check Authentication Status</a></li>
+              </ul>
+            </div>
           </div>
         )}
         <AuthForm />
