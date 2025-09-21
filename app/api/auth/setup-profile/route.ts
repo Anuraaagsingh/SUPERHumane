@@ -101,6 +101,7 @@ export async function POST() {
 
     // For demo accounts, populate demo emails
     if (user.email === "demo@mastermail.com") {
+      console.log("[DEBUG] Setting up demo account emails for user:", user.id)
       await populateDemoEmails(user.id, supabase)
     }
 
@@ -344,11 +345,15 @@ async function populateDemoEmails(userId: string, supabase: any) {
     ]
 
     const { error } = await supabase.from("email_metadata").insert(demoEmails)
-    
+
     if (error) {
       console.error("Demo emails insertion error:", error)
+      return NextResponse.json({
+        error: "Failed to populate demo emails",
+        details: error.message
+      }, { status: 500 })
     } else {
-      console.log("Demo emails populated successfully")
+      console.log(`Demo emails populated successfully: ${demoEmails.length} emails inserted`)
     }
   } catch (error) {
     console.error("Populate demo emails error:", error)

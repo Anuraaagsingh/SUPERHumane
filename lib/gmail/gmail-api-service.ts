@@ -1,16 +1,37 @@
-import { createClient } from '@/lib/supabase'
+import { createServerClient } from "@supabase/ssr"
 import { google } from 'googleapis'
+import { getSupabaseConfig } from '@/lib/supabase'
 
 export class GmailApiService {
-  private supabase = createClient()
+  private supabase: any
+
+  constructor() {
+    this.initSupabase()
+  }
+
+  private initSupabase() {
+    const { url } = getSupabaseConfig()
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder_service_role_key'
+
+    this.supabase = createServerClient(url, serviceRoleKey, {
+      cookies: {
+        getAll() {
+          return []
+        },
+        setAll() {
+          // No-op for service role client
+        },
+      },
+    })
+  }
 
   async getMessages(userId: string, maxResults = 50) {
     try {
       console.log('[Gmail API] Starting message fetch for user:', userId)
-      
+
       // Get the user's session to access provider tokens
       const { data: { user }, error: userError } = await this.supabase.auth.getUser()
-      
+
       if (userError || !user) {
         throw new Error('User not authenticated')
       }
@@ -39,7 +60,7 @@ export class GmailApiService {
 
       // Get access token from Supabase session
       const { data: { session }, error: sessionError } = await this.supabase.auth.getSession()
-      
+
       if (sessionError || !session) {
         throw new Error('No active session found')
       }
@@ -49,6 +70,14 @@ export class GmailApiService {
       const providerRefreshToken = session.provider_refresh_token
 
       if (!providerToken) {
+        console.log('[Gmail API] No provider token found, checking user metadata...')
+        // Fallback to user metadata if provider_token is not in session
+        const userMetadata = user.app_metadata
+        if (userMetadata?.providers?.[0] === 'google') {
+          console.log('[Gmail API] Using user metadata for tokens')
+          // If no tokens are available, the user needs to re-authenticate
+          throw new Error('No Gmail access token available. Please re-authenticate with Google.')
+        }
         throw new Error('No Gmail access token available. Please re-authenticate.')
       }
 

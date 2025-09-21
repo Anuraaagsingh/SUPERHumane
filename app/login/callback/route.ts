@@ -69,6 +69,20 @@ export async function GET(request: NextRequest) {
           })
 
           console.log("[v0] Profile setup response:", setupResponse.status)
+
+          if (!setupResponse.ok) {
+            const setupError = await setupResponse.json()
+            console.error("[v0] Profile setup failed:", setupError)
+
+            // If it's just a profile setup issue, continue to inbox
+            // Only redirect to login if it's a critical error
+            if (setupError.code === 'TABLES_MISSING') {
+              console.log("[v0] Database tables missing, but continuing to inbox")
+              // Continue to inbox - user can set up database later
+            } else {
+              console.log("[v0] Non-critical profile setup error, continuing to inbox")
+            }
+          }
         } catch (setupError) {
           console.error("Profile setup error:", setupError)
           // Continue anyway, profile can be set up later

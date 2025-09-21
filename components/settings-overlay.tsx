@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { X, User, Bell, Keyboard, Palette, Shield, Settings } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { X, User, Bell, Keyboard, Palette, Shield, Settings, Code, Database, Server } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useToast } from "@/hooks/use-toast"
 
@@ -23,13 +24,6 @@ interface SettingsOverlayProps {
 }
 
 export function SettingsOverlay({ isOpen, onClose, user }: SettingsOverlayProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [name, setName] = useState(user.name || "")
-  const [email, setEmail] = useState(user.email)
-  const [keyboardShortcuts, setKeyboardShortcuts] = useState(true)
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [pushNotifications, setPushNotifications] = useState(false)
-  const { theme, setTheme } = useTheme()
   const { toast } = useToast()
 
   if (!isOpen) return null
@@ -74,179 +68,167 @@ export function SettingsOverlay({ isOpen, onClose, user }: SettingsOverlayProps)
   }
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <Card 
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+      <Card
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={handleKeyDown}
       >
         <CardHeader className="flex-shrink-0 border-b">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Settings className="w-5 h-5" />
-              Settings
+              Developer Settings
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-4 h-4" />
             </Button>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-6 space-y-6">
-          {/* Profile Section */}
-          <div className="space-y-4">
+          {/* User Info */}
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              <h3 className="text-lg font-semibold">Profile</h3>
+              <User className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">{user.name || user.email}</span>
+              <Badge variant="secondary" className="text-xs">
+                {user.email === "demo@mastermail.com" ? "Demo" : "Live"}
+              </Badge>
             </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  disabled
-                />
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
 
           <Separator />
 
-          {/* Notifications Section */}
+          {/* Developer Settings */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              <h3 className="text-lg font-semibold">Notifications</h3>
+              <Code className="w-5 h-5 text-blue-500" />
+              <h3 className="text-lg font-semibold">Developer Options</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Email notifications</Label>
+                  <Label>Debug Logging</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive notifications via email
+                    Enable detailed console logging
                   </p>
                 </div>
-                <Switch
-                  checked={emailNotifications}
-                  onCheckedChange={setEmailNotifications}
-                />
+                <Switch defaultChecked />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Push notifications</Label>
+                  <Label>API Debugging</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive push notifications in your browser
+                    Log API requests and responses
                   </p>
                 </div>
-                <Switch
-                  checked={pushNotifications}
-                  onCheckedChange={setPushNotifications}
-                />
+                <Switch defaultChecked />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Database Queries</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Show database query logs
+                  </p>
+                </div>
+                <Switch defaultChecked />
               </div>
             </div>
           </div>
 
           <Separator />
 
-          {/* Interface Section */}
-          <div className="space-y-4">
+          {/* System Info */}
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Palette className="w-5 h-5" />
-              <h3 className="text-lg font-semibold">Interface</h3>
+              <Server className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">System Information</span>
             </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Theme</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Choose your preferred theme
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant={theme === "light" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTheme("light")}
-                  >
-                    Light
-                  </Button>
-                  <Button
-                    variant={theme === "dark" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTheme("dark")}
-                  >
-                    Dark
-                  </Button>
-                </div>
+
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Environment:</span>
+                <span className="font-mono">
+                  {typeof window !== 'undefined' ? 'browser' : process.env.NODE_ENV || 'development'}
+                </span>
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Keyboard shortcuts</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Enable keyboard shortcuts for faster navigation
-                  </p>
-                </div>
-                <Switch
-                  checked={keyboardShortcuts}
-                  onCheckedChange={setKeyboardShortcuts}
-                />
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">User ID:</span>
+                <span className="font-mono">{user.id.slice(0, 8)}...</span>
               </div>
             </div>
           </div>
 
           <Separator />
 
-          {/* Security Section */}
-          <div className="space-y-4">
+          {/* Debug Actions */}
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5" />
-              <h3 className="text-lg font-semibold">Security</h3>
+              <Database className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Debug Actions</span>
             </div>
-            
-            <div className="space-y-2">
-              <Button variant="outline" className="w-full justify-start">
-                Change password
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Two-factor authentication
-              </Button>
-            </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Saving...
-                </>
-              ) : (
-                "Save changes"
+            <div className="grid grid-cols-1 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.open('/api/debug/supabase-config', '_blank')
+                }}
+              >
+                Check Supabase Config
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.open('/api/debug/gmail-test', '_blank')
+                }}
+              >
+                Test Gmail API
+              </Button>
+
+              {user.email === "demo@mastermail.com" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/debug/populate-demo', {
+                        method: 'POST',
+                      })
+                      if (response.ok) {
+                        toast({
+                          title: "Demo emails refreshed",
+                          description: "Demo emails have been repopulated",
+                        })
+                      }
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to refresh demo emails",
+                        variant: "destructive",
+                      })
+                    }
+                  }}
+                >
+                  Refresh Demo Emails
+                </Button>
               )}
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-6">
+            <Button onClick={onClose}>
+              Close
             </Button>
           </div>
         </CardContent>

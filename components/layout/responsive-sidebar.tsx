@@ -36,7 +36,13 @@ export function ResponsiveSidebar({
   const supabase = createClient()
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      console.log("[DEBUG] Signing out user:", user?.email)
+      await supabase.auth.signOut()
+      console.log("[DEBUG] Sign out successful")
+    } catch (error) {
+      console.error("[DEBUG] Sign out error:", error)
+    }
   }
 
   const folders = [

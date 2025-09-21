@@ -58,9 +58,17 @@ export function ResponsiveInboxLayout({ user }: ResponsiveInboxLayoutProps) {
   // Set current account
   useEffect(() => {
     if (accounts && accounts.length > 0 && !currentAccount) {
+      console.log("[DEBUG] Setting current account:", accounts[0].email)
       setCurrentAccount(accounts[0])
     }
   }, [accounts, currentAccount])
+
+  // Debug: Log when accounts or currentAccount changes
+  useEffect(() => {
+    console.log("[DEBUG] Accounts:", accounts?.length || 0, "accounts")
+    console.log("[DEBUG] Current account:", currentAccount?.email)
+    console.log("[DEBUG] Messages:", messages?.length || 0, "messages")
+  }, [accounts, currentAccount, messages])
 
   // Get messages for the current account
   const {
