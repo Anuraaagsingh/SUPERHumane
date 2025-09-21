@@ -1,17 +1,30 @@
-import { createServerClient } from "@supabase/ssr"
+import { type CookieOptions, createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { getSupabaseConfig } from "@/lib/supabase"
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
+
 export async function POST() {
-  console.log("[DEBUG] Setup profile API called")
+  console.log("[SETUP] Setup profile API called")
   const cookieStore = cookies()
   const { url, anonKey } = getSupabaseConfig()
+  
+  const response = NextResponse.next()
   
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value
+      },
+      set(name: string, value: string, options: CookieOptions) {
+        cookieStore.set({ name, value, ...options })
+        response.cookies.set({ name, value, ...options })
+      },
+      remove(name: string, options: CookieOptions) {
+        cookieStore.set({ name, value: "", ...options })
+        response.cookies.set({ name, value: "", ...options })
       },
     },
   })
@@ -24,8 +37,7 @@ export async function POST() {
   } = await supabase.auth.getUser()
 
   console.log("[DEBUG] Setup profile - User:", user?.email, "Auth error:", authError)
-  console.log("[DEBUG] User metadata:", JSON.stringify(user?.app_metadata, null, 2))
-  console.log("[DEBUG] User session:", JSON.stringify(user?.session, null, 2))
+  console.log("[SETUP] User metadata:", JSON.stringify(user?.app_metadata, null, 2))
 
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -72,14 +84,24 @@ export async function POST() {
 
     // Create email account record
     const provider = user.app_metadata?.provider || "google"
+    
+    // Extract tokens from session
     const providerToken = session?.provider_token
     const providerRefreshToken = session?.provider_refresh_token
-
-    console.log("[DEBUG] Provider:", provider, "Token:", !!providerToken, "Refresh:", !!providerRefreshToken)
-
-    if (!providerToken) {
-      console.error("Provider token not found in session")
-      // Do not return an error, as this might be a simple email/password login
+    
+    // Extract expiry time if available
+    const tokenExpiresAt = session?.expires_at 
+      ? new Date(session.expires_at * 1000).toISOString() 
+      : new Date(Date.now() + 3600 * 1000).toISOString() // Default 1 hour
+    
+    console.log("[SETUP] Provider:", provider)
+    console.log("[SETUP] Token present:", !!providerToken)
+    console.log("[SETUP] Refresh token present:", !!providerRefreshToken)
+    console.log("[SETUP] Token expires at:", tokenExpiresAt)
+    
+    if (!providerToken && provider !== "demo") {
+      console.error("[SETUP] Provider token not found in session for non-demo user")
+      // Continue without error as this might be a simple email/password login
     }
 
     // Always create an email account for the user
@@ -91,9 +113,15 @@ export async function POST() {
         display_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email!.split("@")[0],
         access_token: providerToken || "demo_access_token",
         refresh_token: providerRefreshToken || "demo_refresh_token",
+        token_expires_at: tokenExpiresAt,
+        is_active: true,
         settings: {
           sync_enabled: user.email === "demo@mastermail.com" ? false : true,
           sync_frequency: 300, // 5 minutes
+          last_sync: null,
+          scopes: provider === "google" ? 
+            "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify" : 
+            null
         },
       },
       {

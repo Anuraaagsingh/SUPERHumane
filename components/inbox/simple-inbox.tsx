@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -63,31 +64,48 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
 
   const { theme, setTheme } = useTheme()
   const { toast } = useToast()
+  const router = useRouter()
   const supabase = createClient()
 
+  const [needsReauth, setNeedsReauth] = useState(false)
+  
   // Fetch emails
-  const { data: emails = [], isLoading, refetch } = useQuery({
+  const { data: emails = [], isLoading, refetch, error } = useQuery({
     queryKey: ["emails", user.id, selectedFolder],
     queryFn: async () => {
-      const response = await fetch('/api/gmail/messages');
-      if (!response.ok) {
-        throw new Error('Failed to fetch emails');
-      }
-      let data = await response.json();
+      try {
+        const response = await fetch('/api/gmail/messages');
+        const data = await response.json();
+        
+        if (!response.ok) {
+          // Check if we need to re-authenticate
+          if (response.status === 401 || data.needsReauth) {
+            console.error("Authentication error, need to re-login")
+            setNeedsReauth(true)
+            throw new Error(data.error || 'Authentication failed');
+          }
+          throw new Error(data.error || 'Failed to fetch emails');
+        }
 
-      // The rest of the filtering logic can be done client-side for simplicity
-      if (selectedFolder === "starred") {
-        data = data.filter((e: Email) => e.is_starred);
-      } else if (selectedFolder === "archived") {
-        data = data.filter((e: Email) => e.labels?.includes("ARCHIVED")); // Example, Gmail might use a label
-      } else if (selectedFolder === "sent") {
-        data = data.filter((e: Email) => e.labels?.includes("SENT"));
-      } else { // Inbox
-        data = data.filter((e: Email) => e.labels?.includes("INBOX") && !e.labels?.includes("ARCHIVED"));
-      }
+        // The rest of the filtering logic can be done client-side for simplicity
+        let filteredData = data;
+        if (selectedFolder === "starred") {
+          filteredData = data.filter((e: Email) => e.is_starred);
+        } else if (selectedFolder === "archived") {
+          filteredData = data.filter((e: Email) => e.labels?.includes("ARCHIVED")); 
+        } else if (selectedFolder === "sent") {
+          filteredData = data.filter((e: Email) => e.labels?.includes("SENT"));
+        } else { // Inbox
+          filteredData = data.filter((e: Email) => !e.labels?.includes("ARCHIVED"));
+        }
 
-      return data || []
+        return filteredData || []
+      } catch (err) {
+        console.error("Error fetching emails:", err)
+        throw err;
+      }
     },
+    retry: 1, // Only retry once
   })
 
   const handleLogout = async () => {
@@ -149,18 +167,43 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
     }
   }
 
+  // Handle re-authentication if needed
+  useEffect(() => {
+    if (needsReauth) {
+      toast({
+        title: "Authentication Required",
+        description: "Your Gmail session has expired. Please log in again.",
+        variant: "destructive",
+      })
+      
+      // Sign out and redirect to login
+      const handleReauth = async () => {
+        try {
+          await supabase.auth.signOut()
+          router.push("/login")
+        } catch (error) {
+          console.error("Error signing out for reauth:", error)
+          // Force redirect even if signout fails
+          router.push("/login")
+        }
+      }
+      
+      handleReauth()
+    }
+  }, [needsReauth, toast, supabase.auth, router])
+
   const filteredEmails = emails.filter((email: Email) =>
     searchQuery === "" ||
-    email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    email.sender_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    email.snippet.toLowerCase().includes(searchQuery.toLowerCase())
+    email.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    email.sender_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    email.snippet?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const folders = [
-    { id: "inbox", name: "Inbox", icon: Mail, count: emails.filter(e => !e.is_archived).length },
-    { id: "starred", name: "Starred", icon: Star, count: emails.filter(e => e.is_starred).length },
-    { id: "sent", name: "Sent", icon: MailOpen, count: emails.filter(e => e.labels?.includes("sent")).length },
-    { id: "archived", name: "Archive", icon: Archive, count: emails.filter(e => e.is_archived).length },
+    { id: "inbox", name: "Inbox", icon: Mail, count: emails.filter((e: Email) => !e.is_archived).length },
+    { id: "starred", name: "Starred", icon: Star, count: emails.filter((e: Email) => e.is_starred).length },
+    { id: "sent", name: "Sent", icon: MailOpen, count: emails.filter((e: Email) => e.labels?.includes("sent")).length },
+    { id: "archived", name: "Archive", icon: Archive, count: emails.filter((e: Email) => e.is_archived).length },
   ]
 
   return (
@@ -329,6 +372,27 @@ export function SimpleInbox({ user }: SimpleInboxProps) {
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="text-muted-foreground mt-4">Loading emails...</p>
+              </div>
+            ) : error ? (
+              <div className="p-8 text-center">
+                <div className="text-red-500 mx-auto mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                </div>
+                <p className="text-muted-foreground mb-2">
+                  There was an error loading your emails.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => refetch()}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Try Again
+                </Button>
               </div>
             ) : filteredEmails.length === 0 ? (
               <div className="p-8 text-center">
